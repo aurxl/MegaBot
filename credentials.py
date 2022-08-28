@@ -1,1 +1,2 @@
 DISCORD_TOKEN = ""
+W2G_API_KEY = ""
