@@ -1,7 +1,7 @@
 import requests
 import json
 
-def room_create(api_key:str) -> str:
+def room_create(api_key: str = "", url: str = ""):
     header1= {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -10,7 +10,7 @@ def room_create(api_key:str) -> str:
                         headers = header1,
                         data =json.dumps(
                                 {"w2g_api_key": api_key,
-                                "share": "https://youtu.be/0fAQhSRLQnM",}
+                                "share": "{}".format(url),}
                                         )
                       )
 

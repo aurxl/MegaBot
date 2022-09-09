@@ -563,9 +563,9 @@ async def convert(seconds):
     return hours, mins, seconds
 
 @bot.command(name = "w2g", help = "W2G Link erstellen", aliases = ["link","Link","W2G","w2g_link"])
-async def wtwog(ctx):
+async def wtwog(ctx, *, url: str = ""):
     import w2g
-    link = w2g.room_create(W2G_API_KEY)
+    link = w2g.room_create(W2G_API_KEY, url)
     await ctx.send("{}".format(link))
 
 @bot.command(name = "mcWhitelist")
