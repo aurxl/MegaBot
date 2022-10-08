@@ -76,8 +76,9 @@ async def join(ctx):
 @bot.command(name='leave', help='Bot verlässt Channel')
 async def leave(ctx):
     voice_client = ctx.message.guild.voice_client
+    voice_channel = ctx.message.guild.voice_client
     try:
-    	 voice_channel.stop()
+    	voice_channel.stop()
     except:
     	print(" ")
     try:
@@ -308,20 +309,6 @@ async def log(ctx, *, args: str = ""):
 
     elif ctx.message.author != "McFly#6766":
         await ctx.send("@{} Keine Berechtigung!".format(ctx.message.author.name))
-
-
-async def everydayLogs():
-    user = "McFly#6766"
-    while True:
-        time.sleep(1)
-        now = datetime.now()
-        current_time = now.strftime("%H:%M")
-        print(current_time)
-        if current_time == "05:44":
-            print(current_time)
-            os.system("logwatch --service all --detail high --range 'between now and 24 hours ago' --filename ~/logwatch/$(date +%F).log")
-            await user.send(file=discord.File(r'{}'.format(file)))
-            break
 
 @bot.command(name="WerBinIch")
 async def WerBinIch(ctx):
