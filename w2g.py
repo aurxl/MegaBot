@@ -6,7 +6,7 @@ def room_create(api_key: str = "", url: str = ""):
         'Accept': 'application/json',
         'Content-Type': 'application/json'
     }
-    r = requests.post("https://w2g.tv/rooms/create.json",
+    r = requests.post("https://api.w2g.tv/rooms/create.json",
                         headers = header1,
                         data =json.dumps(
                                 {"w2g_api_key": api_key,
