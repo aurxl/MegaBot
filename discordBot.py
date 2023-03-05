@@ -21,7 +21,9 @@ from discord import FFmpegPCMAudio, PCMVolumeTransformer
 
 TOKEN = (DISCORD_TOKEN)
 help_command = commands.DefaultHelpCommand(no_category = 'Commands')
-bot = commands.Bot(command_prefix=commands.when_mentioned_or('#'), help_command = help_command)
+intents = discord.Intents.all()
+intents.message_content = True
+bot = commands.Bot(command_prefix=commands.when_mentioned_or('#'), help_command = help_command, intents=intents)
 
 hoerbuecher_data = {}
 current_hoerbuch = ""
