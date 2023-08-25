@@ -6,7 +6,7 @@ authors = ["jan <jan.meineke@mailbox.org>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.11"
 discord = "^2.1.0"
 ffmpeg = "^1.4"
 mutagen = "^1.46.0"
