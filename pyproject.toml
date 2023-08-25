@@ -6,14 +6,15 @@ authors = ["jan <jan.meineke@mailbox.org>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.9.2"
 discord = "^2.1.0"
 ffmpeg = "^1.4"
 mutagen = "^1.46.0"
 sympy = "^1.11.1"
 yt-dlp = "^2023.03.04"
-yfinance = "^0.2.9"
 pynacl = "^1.5.0"
+requests = "^2.31.0"
+latex = "^0.7.0"
 
 
 [build-system]
