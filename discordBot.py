@@ -27,6 +27,8 @@ hoerbuch_start_time = 0
 hoerbuch_end_time = 0
 
 queue_list = []
+curr_song = ""
+pause_song = ""
 
 @bot.event
 async def on_ready():
@@ -115,19 +117,21 @@ async def play_song(ctx, url, type):
     await ctx.send('**Jetzt läuft:** {}'.format(getTitle()))
     print("{}: Play song    ".format(ctx.message.author.name) + "Title: {}".format(getTitle()))
 
-    await status()
+    await after_play(getTitle(), getFilename())
     #await leaving(ctx)
 
 @bot.command(name='queue', help='queue song [alpha]', aliases=['q'])
 async def queue(ctx, *, url):
     queue_list.append([ctx, url, datetime.datetime.now()])
 
-async def check_queue():
+async def play_queue():
     if queue_list != []:
         print(queue_list)
         ctx = queue_list[0][0]
         url = queue_list[0][1]
         await play_song(ctx, url, "check_queue")
+        return True
+    return False
 
 @bot.command(name='list', help='list queue [debug]')
 async def queue(ctx):
@@ -139,12 +143,7 @@ async def next(ctx):
         voice_channel = ctx.message.guild.voice_client
         await ctx.send("**next**")
         voice_channel.stop()
-        await clear_dir()
 
-        await bot.change_presence(activity=bot.guilds[0].get_member(bot.user.id).activity)
-        await bot.change_presence(activity=discord.Game('Discord'))
-
-        next_c = True
         ctx = queue_list[0][0]
         url = queue_list[0][1]
         queue_list.pop(0)
@@ -153,24 +152,34 @@ async def next(ctx):
         await ctx.send('**no song in queue**')
 
 async def leaving(ctx):
-    done = False
-    #while done == False:
-        #if
     print(ctx.message.author.voice.channel.members)
 
-async def status():
-    global start
-    start = time.time()
-    status = discord.Activity(type=discord.ActivityType.listening, name=getTitle())
+async def status(title: str="discord", activity: str="game"):
+    if activity == "game":
+        status = discord.Activity(type=discord.ActivityType.playing, name=title)
+    elif activity == "listen":
+        status = discord.Activity(type=discord.ActivityType.listening, name=title)
     await bot.change_presence(activity=status)
-    await asyncio.sleep(getDuration())
-    await bot.change_presence(activity=discord.Game('Discord'))
-    await clear_dir()
-    await check_queue()
 
-async def clear_dir():
+async def after_play(title, filename):
+    global curr_song
+    curr_song = title
+    await status(title=title, activity="listen")
+    await asyncio.sleep(getDuration())
+
+    if curr_song == title and pause_song == "":
+        await status(title="Discord", activity="game")
+        curr_song = ""
+        await clear_dir(filename)
+        print("finished {}".format(title))
+        if queue_list != []:
+            await play_queue()
+    elif pause_song != title:
+        await clear_dir(filename)
+
+async def clear_dir(title):
     try:
-        os.remove(getFilename())
+        os.remove(title)
     except:
     	return
 
@@ -182,31 +191,29 @@ async def stop(ctx):
     os.remove(getFilename())
     queue_list.clear()
     await bot.change_presence(activity=bot.guilds[0].get_member(bot.user.id).activity)
-    await bot.change_presence(activity=discord.Game('Discord'))
+    await status(title="Discord", activity="game")
     print("{}: Stop".format(ctx.message.author.name))
 
 @bot.command(name="pause", help="pause playing song")
 async def pause(ctx):
-    #global end
-    #pause = 1
-    #end = time.time()
-    #duration = 3600
+    global curr_song, pause_song
     voice_client = ctx.message.guild.voice_client
     await ctx.send("**pause**")
     voice_client.pause()
-    await bot.change_presence(activity=discord.Game('Discord'))
+    pause_song = curr_song
+    curr_song = ""
+    await status(title="Discord", activity="game")
     print("{}: Pause".format(ctx.message.author.name))
-    #await status()
 
 @bot.command(name="resume", help="resume song")
 async def resume(ctx):
-    #pause = 0
-    #duration = durations - (end-start)
+    global curr_song, pause_song
+    curr_song = pause_song
+    pause_song = ""
     voice_client = ctx.message.guild.voice_client
     await ctx.send("**resume**")
     voice_client.resume()
     print("{}: Resume".format(ctx.message.author.name))
-    #await status()
 
 @bot.command(name="echo", help="echo")
 async def echo(ctx, * , msg):
