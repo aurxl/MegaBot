@@ -118,7 +118,7 @@ async def play_song(ctx, url, type):
     await status()
     #await leaving(ctx)
 
-@bot.command(name='q', help='queue song')
+@bot.command(name='queue', help='queue song [alpha]', aliases=['q'])
 async def queue(ctx, *, url):
     queue_list.append([ctx, url, datetime.datetime.now()])
 
@@ -129,11 +129,11 @@ async def check_queue():
         url = queue_list[0][1]
         await play_song(ctx, url, "check_queue")
 
-@bot.command(name='list', help='list queue')
+@bot.command(name='list', help='list queue [debug]')
 async def queue(ctx):
     await ctx.send(queue_list)
 
-@bot.command(name='next', help='next song')
+@bot.command(name='next', help='next song [alpha]', aliases=['n'])
 async def next(ctx):
     if queue_list != []:
         voice_channel = ctx.message.guild.voice_client
