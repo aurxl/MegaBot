@@ -2,11 +2,9 @@
 import discord
 import random
 import os
-import ffmpeg
 import time
 import asyncio
 import json
-import mutagen
 from mutagen.mp3 import MP3
 from datetime import date
 from datetime import datetime
@@ -15,9 +13,7 @@ from sympy import *
 from credentials import*
 from yt_dl import*
 from discord.ext import commands
-import yfinance as yf
 import requests
-from discord import FFmpegPCMAudio, PCMVolumeTransformer
 
 TOKEN = (DISCORD_TOKEN)
 help_command = commands.DefaultHelpCommand(no_category = 'Commands')
@@ -29,6 +25,8 @@ hoerbuecher_data = {}
 current_hoerbuch = ""
 hoerbuch_start_time = 0
 hoerbuch_end_time = 0
+
+queue_list = []
 
 @bot.event
 async def on_ready():
@@ -80,18 +78,21 @@ async def leave(ctx):
     voice_client = ctx.message.guild.voice_client
     voice_channel = ctx.message.guild.voice_client
     try:
-    	voice_channel.stop()
+        voice_channel.stop()
     except:
-    	print(" ")
+        print(" ")
     try:
-       	await voice_client.disconnect()
-       	await ctx.send("leave voice channel")
+        await voice_client.disconnect()
+        await ctx.send("leave voice channel")
     except:
-        	await ctx.send("The bot is not connected to a voice channel.")
+        await ctx.send("The bot is not connected to a voice channel.")
     print("{}: Leave channel".format(ctx.message.author.name))
 
 @bot.command(name='play', help='Bot plays song', aliases=["p"])
 async def play(ctx, *, url):
+    await play_song(ctx, url, "play")
+
+async def play_song(ctx, url, type):
     voice_client = ctx.voice_client
     if voice_client == None:
         await ctx.message.author.voice.channel.connect()
@@ -100,24 +101,62 @@ async def play(ctx, *, url):
     server = ctx.message.guild
     voice_channel = server.voice_client
 
+    if voice_client.is_playing() and type == "check_queue":
+        return
+    elif not voice_client.is_playing() and type == "check_queue":
+        queue_list.pop(0)
     if voice_client.is_playing():
         voice_channel.stop()
 
     async with ctx.typing():
         file = await YTDLSource.from_url(url, loop=bot.loop)
-        voice_channel.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio( source=file), 0.5))
+        voice_channel.play(discord.PCMVolumeTransformer(discord.FFmpegPCMAudio( source=file), 0.7))
 
     await ctx.send('**Jetzt läuft:** {}'.format(getTitle()))
     print("{}: Play song    ".format(ctx.message.author.name) + "Title: {}".format(getTitle()))
+
     await status()
     #await leaving(ctx)
+
+@bot.command(name='q', help='queue song')
+async def queue(ctx, *, url):
+    queue_list.append([ctx, url, datetime.datetime.now()])
+
+async def check_queue():
+    if queue_list != []:
+        print(queue_list)
+        ctx = queue_list[0][0]
+        url = queue_list[0][1]
+        await play_song(ctx, url, "check_queue")
+
+@bot.command(name='list', help='list queue')
+async def queue(ctx):
+    await ctx.send(queue_list)
+
+@bot.command(name='next', help='next song')
+async def next(ctx):
+    if queue_list != []:
+        voice_channel = ctx.message.guild.voice_client
+        await ctx.send("**next**")
+        voice_channel.stop()
+        await clear_dir()
+
+        await bot.change_presence(activity=bot.guilds[0].get_member(bot.user.id).activity)
+        await bot.change_presence(activity=discord.Game('Discord'))
+
+        next_c = True
+        ctx = queue_list[0][0]
+        url = queue_list[0][1]
+        queue_list.pop(0)
+        await play_song(ctx, url, "next")
+    else:
+        await ctx.send('**no song in queue**')
 
 async def leaving(ctx):
     done = False
     #while done == False:
         #if
     print(ctx.message.author.voice.channel.members)
-
 
 async def status():
     global start
@@ -126,11 +165,12 @@ async def status():
     await bot.change_presence(activity=status)
     await asyncio.sleep(getDuration())
     await bot.change_presence(activity=discord.Game('Discord'))
-    await clear()
+    await clear_dir()
+    await check_queue()
 
-async def clear():
+async def clear_dir():
     try:
-    	os.remove(getFilename())
+        os.remove(getFilename())
     except:
     	return
 
@@ -140,6 +180,7 @@ async def stop(ctx):
     await ctx.send("**stop**")
     voice_channel.stop()
     os.remove(getFilename())
+    queue_list.clear()
     await bot.change_presence(activity=bot.guilds[0].get_member(bot.user.id).activity)
     await bot.change_presence(activity=discord.Game('Discord'))
     print("{}: Stop".format(ctx.message.author.name))
