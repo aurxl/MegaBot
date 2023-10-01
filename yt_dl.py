@@ -8,12 +8,12 @@ ytdl_format_options = {
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
-    'ignoreerrors': False,
-    'logtostderr': False,
-    'quiet': True,
-    'no_warnings': True,
+    'ignoreerrors': True,
+    'logtostderr': True,
+#    'quiet': Tuer,
+#    'no_warnings': True,
     'default_search': 'auto',
-    'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
+    #'source_address': '0.0.0.0' # bind to ipv4 since ipv6 addresses cause issues sometimes
 }
 ffmpeg_options = {
     'options': '-vn'
@@ -50,3 +50,6 @@ def getDuration():
 
 def getFilename():
 	return filename
+
+def getTitleFromUrl(url):
+    return
