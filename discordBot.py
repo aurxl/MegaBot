@@ -134,7 +134,7 @@ async def play_queue():
     return False
 
 @bot.command(name='list', help='list queue [debug]')
-async def queue(ctx):
+async def list_queue(ctx):
     await ctx.send(queue_list)
 
 @bot.command(name='next', help='next song [alpha]', aliases=['n'])
