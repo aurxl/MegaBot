@@ -143,7 +143,7 @@ class song:
 
         if probe.startswith(("https://", "http://")) and ("www.youtube.com/watch?" in probe or "youtu.be/" in probe):
             return probe
-        elif probe.startswith("www.youtube.com/watch?"):
+        if probe.startswith("www.youtube.com/watch?"):
             return "https://" + probe
         return False
 
