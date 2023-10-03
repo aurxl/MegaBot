@@ -19,7 +19,7 @@ class w2g:
     By updating a room, the given video will be played immediately.
 
     w2g attributes:
-    api_key     -- YOURE w2g API Key
+    api_key     -- YOUR w2g API Key
     stream_key  -- set when creating a room, needed to interact later on
     room_link   -- the room link to share
     bg_color    -- optioanl option, sets background color when creating a room
@@ -103,7 +103,6 @@ class w2g:
                                 )
             if req.ok:
                 return True
-            else:
-                raise requests.HTTPError(f'non 200 status code ({req.status_code})')
+            raise requests.HTTPError(f'non 200 status code ({req.status_code})')
         except Exception as exc:
             raise Exception('failed post request') from exc
