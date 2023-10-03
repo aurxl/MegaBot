@@ -18,8 +18,10 @@ class w2g:
 
     By updating a room, the given video will be played immediately.
 
-    w2g attributes:
-    api_key     -- YOUR w2g API Key
+    Params:
+    api_key -- YOUR w2g API Key
+
+    Attributes:
     stream_key  -- set when creating a room, needed to interact later on
     room_link   -- the room link to share
     bg_color    -- optioanl option, sets background color when creating a room
