@@ -1,9 +1,11 @@
 [tool.poetry]
 name = "megabot"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
+license = "MIT"
 authors = ["jan <jan.meineke@mailbox.org>"]
 readme = "README.md"
+repository = "https://github.com/aurxl/MegaBot"
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -20,3 +22,6 @@ pylint = "^3.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+megabot = "megabot.console:main"
