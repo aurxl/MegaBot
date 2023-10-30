@@ -76,8 +76,8 @@ class w2g:
             )
         except Exception as exc:
             raise Exception('failed post request') from exc
-
-        response = json.loads(req.text)
+        print(req.json())
+        response = req.json()
 
         self.stream_key = response["streamkey"]
         self.room_link = f'https://w2g.tv/rooms/{response["streamkey"]}'
