@@ -4,6 +4,7 @@ from src.megabot.w2g import w2g
 
 
 class Testw2g(unittest.TestCase):
+    """Testing w2g module"""
     def setUp(self) -> None:
         dummyAPI = "123456"
         self.room = w2g(dummyAPI)
@@ -11,6 +12,7 @@ class Testw2g(unittest.TestCase):
 
     @patch('requests.post')
     def test_create_room(self, mock_req):
+        """Testing create_room function"""
         self.assertEqual(self.room.api_key, "123456")
 
         with self.subTest("valid post request"):
@@ -19,7 +21,10 @@ class Testw2g(unittest.TestCase):
                 'streamkey': '42'
             }
 
-            self.assertEqual(self.room.create_room(url="https://youtu.be/j3OqAN4ISOw?si=HsLSFnv5yFeXLjJa"), ("https://w2g.tv/rooms/42", "42"))
+            self.assertEqual(self.room.create_room(
+                url="https://youtu.be/j3OqAN4ISOw?si=HsLSFnv5yFeXLjJa"),
+                ("https://w2g.tv/rooms/42", "42")
+            )
             self.assertEqual(self.room.stream_key, "42")
             self.assertEqual(self.room.room_link, "https://w2g.tv/rooms/42")
 
@@ -32,6 +37,7 @@ class Testw2g(unittest.TestCase):
 
     @patch('requests.post')
     def test_update_room(self, mock_req):
+        """Testing update_room function"""
         self.assertEqual(self.room.api_key, "123456")
 
         with self.subTest("valid post request"):
