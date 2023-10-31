@@ -109,6 +109,5 @@ class w2g:
             )
             if req.ok:
                 return True
-            raise requests.HTTPError(f'non 200 status code ({req.status_code})')
         except Exception as exc:
             raise Exception('failed post request') from exc

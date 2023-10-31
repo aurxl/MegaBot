@@ -38,14 +38,8 @@ class song:
     ytdl_options_download -- ytdl options for downloading the audio
     """
 
-    def __init__(self, content: str = None):
-        """ initialize object attributes.
-
-        Raise error when wether url, nor title is given.
-        """
-
-        if not content:
-            raise Exception('title or link required')
+    def __init__(self, content: str):
+        """ initialize object attributes."""
 
         self.infos = {}
         self.title = ""
@@ -103,19 +97,19 @@ class song:
         if is_url:
             self.title = self.infos["fulltitle"]
             self.url = self.infos["original_url"]
-            self.channel = self.infos['channel']
-            self.duration = self.infos['duration']
-            self.stream_url = self.infos['url']
-            self.channel_url = self.infos['channel_url']
-            self.thumbnail_url = self.infos['thumbnail']
+            self.channel = self.infos["channel"]
+            self.duration = self.infos["duration"]
+            self.stream_url = self.infos["url"]
+            self.channel_url = self.infos["channel_url"]
+            self.thumbnail_url = self.infos["thumbnail"]
         else:
             self.title = self.infos["entries"][0]["fulltitle"]
             self.url = self.infos["entries"][0]["original_url"]
-            self.channel = self.infos['entries'][0]['channel']
-            self.duration = self.infos['entries'][0]['duration']
-            self.stream_url = self.infos['entries'][0]['url']
-            self.channel_url = self.infos['entries'][0]['channel_url']
-            self.thumbnail_url = self.infos['entries'][0]['thumbnail']
+            self.channel = self.infos["entries"][0]["channel"]
+            self.duration = self.infos["entries"][0]["duration"]
+            self.stream_url = self.infos["entries"][0]["url"]
+            self.channel_url = self.infos["entries"][0]["channel_url"]
+            self.thumbnail_url = self.infos["entries"][0]["thumbnail"]
 
     def reload_infos(self) -> bool:
         """regather infos
