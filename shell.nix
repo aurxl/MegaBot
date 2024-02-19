@@ -2,11 +2,12 @@
   pkgs.mkShell {
     buildInputs = with pkgs; [
       poetry
-      python311
-      python311Packages.virtualenv
+      python39
     ];
 
   shellHook = ''
     export PYTHON_KEYRING_BACKEND=keyring.backends.null.Keyring
+    poetry env use $(which python)
+    source $(poetry env info --path)/bin/activate
   '';
 }
