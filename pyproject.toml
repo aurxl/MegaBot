@@ -8,17 +8,17 @@ readme = "README.md"
 repository = "https://github.com/aurxl/MegaBot"
 
 [tool.poetry.dependencies]
-python = "^3.9"
-discord = "^2.1.0"
-ffmpeg = "^1.4"
-mutagen = "^1.46.0"
-sympy = "^1.11.1"
-yt-dlp = "^2023.07.06"
-pynacl = "^1.5.0"
-requests = "^2.31.0"
-pylint = "^3.0.0"
-pytest = "^7.4.3"
-pytest-cov = "^4.1.0"
+python = "^3.12"
+discord = "*"
+ffmpeg = "*"
+mutagen = "*"
+sympy = "*"
+yt-dlp = "*"
+pynacl = "*"
+requests = "*"
+pylint = "*"
+pytest = "*"
+pytest-cov = "*"
 
 
 [build-system]

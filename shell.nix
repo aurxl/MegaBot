@@ -2,7 +2,7 @@
   pkgs.mkShell {
     buildInputs = with pkgs; [
       poetry
-      python311
+      python312
     ];
 
   shellHook = ''

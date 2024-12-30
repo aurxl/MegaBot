@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-from contextlib import chdir
 import os
+from contextlib import chdir
+
 import yt_dlp
+from discord.ext.commands import bot_has_permissions
 
 
-class song:
+class Song:
     """ song class can hold one song at a time.
 
     The song or better the audio will be downloaded from YouTube
@@ -50,7 +52,7 @@ class song:
         self.channel_url = ""
         self.thumbnail_url = ""
         self.filename = ""
-        self.downlaod_path = "tmp_media"
+        self.download_path = "tmp_media"
         self.valid = False
         self.status = "nothing"
         self.ytdl_options_info = {
@@ -91,7 +93,7 @@ class song:
                 infos = ydl.extract_info(content, download=False)
             self.valid = True
         except Exception as exc:
-            raise Exception(f"couldnt find {content}") from exc
+            raise Exception(f"Couldn't find {content}") from exc
 
         self.infos = ydl.sanitize_info(infos)
         if is_url:
@@ -124,22 +126,23 @@ class song:
         except Exception as exc:
             raise Exception(f"cant reload infos ({self.url})") from exc
 
-    def check_url(self, probe: str) -> str:
+    @staticmethod
+    def check_url(probe: str) -> str:
         """ checking if given str is YT link
 
         Params:
         probe: str -- str to check
 
         Return:
-        str     -- if valid
-        False   -- if not valid
+        str       -- if valid
+        empty str -- if not valid
         """
 
         if probe.startswith(("https://", "http://")) and ("www.youtube.com/watch?" in probe or "youtu.be/" in probe):
             return probe
         if probe.startswith("www.youtube.com/watch?"):
             return "https://" + probe
-        return False
+        return ""
 
     def download(self, directory: str = None) -> str:
         """ downloading audio file
@@ -155,20 +158,20 @@ class song:
         """
 
         if directory:
-            self.downlaod_path = directory
+            self.download_path = directory
 
-        if not os.path.exists(self.downlaod_path):
+        if not os.path.exists(self.download_path):
             try:
-                os.mkdir(self.downlaod_path)
+                os.mkdir(self.download_path)
             except FileExistsError:
                 pass
             except FileNotFoundError as err:
-                raise Exception(f"cant create dir {self.downlaod_path}") from err
+                raise Exception(f"cant create dir {self.download_path}") from err
             except Exception as err:
-                raise Exception(f"cant create dir {self.downlaod_path}") from err
+                raise Exception(f"cant create dir {self.download_path}") from err
 
         try:
-            with chdir(self.downlaod_path):
+            with chdir(self.download_path):
                 try:
                     with yt_dlp.YoutubeDL(self.ytdl_options_download) as ydl:
                         result = ydl.extract_info(self.url, download=True)
@@ -176,14 +179,14 @@ class song:
                 except Exception as exc:
                     raise Exception(f"failed downloading {self.url}") from exc
         except Exception as exc:
-            raise Exception(f"cant go to dir {self.downlaod_path}") from exc
+            raise Exception(f"cant go to dir {self.download_path}") from exc
 
         return self.filename
 
     def progress_hook(self, d) -> None:
         """ ytdl download progress
 
-        provided by yt_dlp. Current status will be stored on self.status.
+        provided by yt_dlp. Current status will be stored in self.status.
 
         Params:
         progress hook object

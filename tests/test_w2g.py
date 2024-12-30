@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, Mock
-from src.megabot.w2g import w2g
+from megabot.w2g import w2g
 
 
 class Testw2g(unittest.TestCase):

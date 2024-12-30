@@ -2,6 +2,7 @@ credentials.py
 __pycache__/
 .vscode/
 log/
+config
 dist/
 .pytest_cache/
 .coverage

@@ -10,8 +10,6 @@ from datetime import date
 from datetime import datetime
 import datetime
 from sympy import *
-from credentials import*
-from yt_dl import*
 from discord.ext import commands
 import requests
 

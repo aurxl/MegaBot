@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import patch, Mock
-from megabot.song import song
+from megabot.song import Song
 
 
 class TestSong(unittest.TestCase):
@@ -64,8 +64,8 @@ class TestSong(unittest.TestCase):
         self.mock_ydl_instance_ret.extract_info.return_value = Mock()
         self.mock_ydl_instance_ret.sanitize_info.return_value = dummy_info_url
 
-        # reinitialize our song object with an url
-        test_song = song("https://www.youtu.be/")
+        # reinitialize our Song object with an url
+        test_song = Song("https://www.youtu.be/")
         test_song.get_infos(content=url)
 
         self._test_song_attributes(dummy_info=dummy_info_url, test_song=test_song, url=url)
@@ -90,8 +90,8 @@ class TestSong(unittest.TestCase):
         self.mock_ydl_instance_ret.extract_info.return_value = Mock()
         self.mock_ydl_instance_ret.sanitize_info.return_value = dummy_info_url
 
-        # reinitialize our song object with an url
-        test_song = song("42")
+        # reinitialize our Song object with an url
+        test_song = Song("42")
         test_song.get_infos(content=title)
 
         self._test_song_attributes(dummy_info=dummy_info_url, test_song=test_song, title=title)
@@ -102,12 +102,12 @@ class TestSong(unittest.TestCase):
         self.mock_ydl_instance_ret.extract_info.side_effect = Exception
 
         with self.assertRaises(Exception) as ctx:
-            self.assertFalse(song(title).valid)
-        self.assertEqual(str(ctx.exception), f"couldnt find {title}")
+            self.assertFalse(Song(title).valid)
+        self.assertEqual(str(ctx.exception), f"Couldn't find {title}")
 
     def test_reload_infos_successful(self):
         """test func reload_infos"""
-        test_song = song("")
+        test_song = Song("")
 
         with patch.object(test_song, 'get_infos', return_value=None):
             result = test_song.reload_infos()
@@ -117,7 +117,7 @@ class TestSong(unittest.TestCase):
         """test func reload_infos but get_infos returns an error"""
         url = "https://www.youtube.com/watch?v=EqWRaAF6_WY"
 
-        test_song = song("")
+        test_song = Song("")
         test_song.url = url
 
         with patch.object(test_song, 'get_infos', side_effect=Exception):
