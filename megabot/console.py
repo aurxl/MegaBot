@@ -6,7 +6,6 @@ import os
 import pathlib
 import sys
 from importlib.metadata import version
-from logging import getLogger
 from logging.handlers import RotatingFileHandler
 
 VERSION = version(__package__)
@@ -25,6 +24,9 @@ argConsts = {
     "EPILOG": ""
 }
 
+
+logger = logging.getLogger('megabot')
+logger.setLevel(logging.DEBUG)
 
 class ConfigParser(configparser.ConfigParser):
     def __getitem__(self, key):
@@ -98,7 +100,8 @@ def read_config(cli_path: str):
         try:
             assert config[opt[0]][opt[1]]
         except KeyError:
-            raise Exception(f"missing {opt} in config")
+            print(Exception(f"Missing {opt} in config"))
+            exit(1)
 
     return config
 
@@ -151,9 +154,6 @@ def setup_logging(logging_opts):
         except Exception as exc:
             raise Exception(f"cant create directory {logging_opts["path"]}") from exc
 
-    logger = logging.getLogger('megabot')
-    logger.setLevel(logging.DEBUG)
-
     # Initialize file logging
     file_handler = RotatingFileHandler(
         filename=f"{logging_opts["path"]}/megabot.log",
@@ -168,8 +168,16 @@ def setup_logging(logging_opts):
     # Set formatter
     date_format_file = "%Y-%m-%d %H:%M:%S"
     date_format_stream = "%H:%M:%S"
-    file_formatter = logging.Formatter("[{asctime}] {levelname:<8} -> {name}: {message}", datefmt=date_format_file, style="{")
-    stream_formatter = logging.Formatter("[{asctime}] {levelname:<8} -> {name}: {message}", datefmt=date_format_stream, style="{")
+    file_formatter = logging.Formatter(
+        "[{asctime}] {levelname:<8} -> {name}: {message}",
+        datefmt=date_format_file,
+        style="{"
+    )
+    stream_formatter = logging.Formatter(
+        "[{asctime}] {levelname:<8} -> {name}: {message}",
+        datefmt=date_format_stream,
+        style="{"
+    )
     file_handler.setFormatter(file_formatter)
     stream_handler.setFormatter(stream_formatter)
 
@@ -192,14 +200,12 @@ def setup_logging(logging_opts):
     logger.addHandler(file_handler)
     logger.addHandler(stream_handler)
 
-    return logger
-
 
 def main() -> None:
     args = parse_args()
     conf = read_config(cli_path=args.CONF)
     opts = evaluate_options(conf=conf, args=args)
-    logger = setup_logging(opts["logging"])
+    setup_logging(opts["logging"])
     logger.info("Hello World!")
 
 
