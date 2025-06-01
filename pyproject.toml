@@ -19,6 +19,7 @@ requests = "*"
 pylint = "*"
 pytest = "*"
 pytest-cov = "*"
+dynaconf = "^3.2.11"
 
 
 [build-system]
@@ -26,4 +27,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-megabot = "megabot.console:main"
+megabot = "megabot.main:main"
