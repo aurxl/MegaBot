@@ -4,7 +4,7 @@ from dynaconf import Dynaconf, LazySettings
 import argparse
 from importlib.metadata import version, metadata
 
-VERSION = version(__package__)
+VERSION = version(str(__package__))
 SCRIPT_PATH = pathlib.Path(__file__).parent.resolve()
 LOGGING_DEFAULT_PATH = f"{SCRIPT_PATH.parent.resolve()}/log"
 CONFIG_DEFAULT_PATHS = [
@@ -98,9 +98,9 @@ def __config_settings() -> LazySettings:
 
 def __merge_settings(file_config:LazySettings, cli_args:argparse.Namespace) -> None:
     if cli_args.DEBUG:
-        file_config.logging.file.level = "DEBUG"
+        file_config.logging.debug = True
     if cli_args.LOGGINGPATH:
-        file_config.logging.file.path = cli_args.LOGGINGPATH
+        file_config.logging.path = cli_args.LOGGINGPATH
     if cli_args.VERBOSE:
         file_config.logging.cli.level = cli_args.VERBOSE
 
