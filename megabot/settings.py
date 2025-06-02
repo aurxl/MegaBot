@@ -20,7 +20,10 @@ DEFAULT_DISCORD_SETTINGS = {
     "owner": "",
     "admin": "",
     "mod": "",
-    "blacklist": []
+    "blacklist": [],
+    "extensions": [
+        "core"
+    ]
 }
 DEFAULT_W2G_SETTINGS = {
     "enable": False,
