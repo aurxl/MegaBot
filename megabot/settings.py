@@ -21,7 +21,7 @@ DEFAULT_DISCORD_SETTINGS = {
     "admin": "",
     "mod": "",
     "blacklist": [],
-    "extensions": [
+    "modules": [
         "core"
     ]
 }
