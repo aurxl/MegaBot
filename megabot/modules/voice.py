@@ -38,5 +38,15 @@ class Voice(commands.Cog):
             return await ctx.voice_client.move_to(channel)
         await channel.connect()
 
+    @commands.command(name="leave")
+    async def leave(self, ctx):
+        """Leaves current voice channel"""
+
+        logger.debug(f"{ctx.author.name} requested to leave channel {ctx.voice_client.channel.name}")
+
+        if ctx.voice_client is not None:
+            return await ctx.voice_client.disconnect()
+        await ctx.send("There is no channel to leave")
+
 async def setup(bot):
    await bot.add_cog(Voice(bot))
