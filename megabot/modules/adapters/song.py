@@ -3,8 +3,11 @@ import os
 import re
 import pathlib
 import yt_dlp
+import asyncio
+import discord
 
 from contextlib import chdir
+from discord import PCMVolumeTransformer, FFmpegPCMAudio
 from megabot.settings import settings
 
 
@@ -39,13 +42,14 @@ class Song:
     valid        -- if the object is holding a valid song that can be played
     status       -- current status -- useful when downloading the audio
     ytdl_options_info     -- ytdl options for gathering all the infos
-    ytdl_options_download -- ytdl options for downloading the audio
+    ytdl_options_format -- ytdl options for downloading the audio
     """
 
-    def __init__(self, content: str):
+    def __init__(self, content: str, stream=False, loop=None):
         """ initialize object attributes."""
 
-        self.infos = {}
+        self.stream = stream
+        self.infos = dict()
         self.title = ""
         self.url = ""
         self.channel = ""
@@ -59,12 +63,14 @@ class Song:
         self.valid = False
         self.status = "nothing"
         self.ytdl_options_info = {
-            "format": "bestaudio/best",
-            "default_search": "auto",
-            "noplaylist": True,
-            "title": True,
+            'format': 'bestaudio/best',
+            'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+            'restrictfilenames': True,
+            'noplaylist': True,
+            'default_search': 'auto',
+            'source_address': '0.0.0.0',
         }
-        self.ytdl_options_download = {
+        self.ytdl_format_options_download = {
             "format": "bestaudio/best",
             'restrictfilenames': True,
             "noplaylist": True,
@@ -74,7 +80,22 @@ class Song:
                 'preferredcodec': self.codec,
             }]
         }
+        self.ytdl_format_options_stream = {
+            "format": "bestaudio/best",
+            'restrictfilenames': True,
+            "noplaylist": True,
+        }
+        self.ffmpeg_options = {
+            "options": "-vn  -acodec copy",
+            "before_options": "-allowed_extensions ALL"
+        }
         self.get_infos(content)
+
+    async def play(self):
+        source = self.stream_url
+        if not self.stream:
+            source = str(pathlib.Path(f"{self.download_path}/{self.download()}").resolve())
+        return discord.FFmpegPCMAudio(source, **self.ffmpeg_options)
 
     def get_infos(self, content: str) -> None:
         """ gathering song/ audio file infos
@@ -99,22 +120,16 @@ class Song:
             raise Exception(f"Couldn't find {content}") from exc
 
         self.infos = ydl.sanitize_info(infos)
-        if is_url:
-            self.title = self.infos["fulltitle"]
-            self.url = self.infos["original_url"]
-            self.channel = self.infos["channel"]
-            self.duration = self.infos["duration"]
-            self.stream_url = self.infos["url"]
-            self.channel_url = self.infos["channel_url"]
-            self.thumbnail_url = self.infos["thumbnail"]
-        else:
-            self.title = self.infos["entries"][0]["fulltitle"]
-            self.url = self.infos["entries"][0]["original_url"]
-            self.channel = self.infos["entries"][0]["channel"]
-            self.duration = self.infos["entries"][0]["duration"]
-            self.stream_url = self.infos["entries"][0]["url"]
-            self.channel_url = self.infos["entries"][0]["channel_url"]
-            self.thumbnail_url = self.infos["entries"][0]["thumbnail"]
+        if not is_url:
+            self.infos = self.infos["entries"][0]
+
+        self.title = self.infos["fulltitle"]
+        self.url = self.infos["original_url"]
+        self.channel = self.infos["channel"]
+        self.duration = self.infos["duration"]
+        self.stream_url = self.infos["url"]
+        self.channel_url = self.infos["channel_url"]
+        self.thumbnail_url = self.infos["thumbnail"]
 
     def reload_infos(self) -> bool:
         """regather infos
@@ -176,7 +191,7 @@ class Song:
         try:
             with chdir(self.download_path):
                 try:
-                    with yt_dlp.YoutubeDL(self.ytdl_options_download) as ydl:
+                    with yt_dlp.YoutubeDL(self.ytdl_format_options_download) as ydl:
                         result = ydl.extract_info(self.url, download=True)
                     self.filename = self.__prepare_filename(ydl.prepare_filename(result))
                 except Exception as exc:

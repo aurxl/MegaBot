@@ -23,7 +23,7 @@ class Music(commands.Cog):
 
     @commands.command(name="play")
     async def play(self, ctx, *, request:str):
-        """Plays music"""
+        """Plays music from YT"""
         voice_client = ctx.voice_client
 
         logger.debug(f"{ctx.author.name} requested to play {request}")
@@ -32,15 +32,39 @@ class Music(commands.Cog):
             join_command = self.bot.get_command("join")
             voice_client = await ctx.invoke(join_command)
 
-        song = Song(content=request)
+        song = Song(content=request, stream=False)
         song_queue = [song]
         song_queue.extend(self.song_queue)
         self.song_queue = song_queue
 
-        song.download()
+        # song.download()
+        # await ctx.send(f"Playing: {song.title}")
+        # file = f"{song.download_path}/{song.filename}"
+        # voice_client.play(FFmpegOpusAudio(file))
+
+        player = await song.play()
+        voice_client.play(player)
+
+    @commands.command(name="stream")
+    async def stream(self, ctx, *, request:str):
+        """Streams music from YT"""
+        voice_client = ctx.voice_client
+
+        logger.debug(f"{ctx.author.name} requested to stream {request}")
+
+        if voice_client is None:
+            join_command = self.bot.get_command("join")
+            voice_client = await ctx.invoke(join_command)
+
+        song = Song(content=request, loop=self.bot.loop, stream=True)
+        song_queue = [song]
+        song_queue.extend(self.song_queue)
+        self.song_queue = song_queue
+
         await ctx.send(f"Playing: {song.title}")
-        file = f"{song.download_path}/{song.filename}"
-        voice_client.play(FFmpegOpusAudio(file))
+        player = await song.play()
+        # voice_client.play(FFmpegOpusAudio(song.url))
+        voice_client.play(player)
 
     @commands.command(name="stop")
     async def stop(self, ctx):

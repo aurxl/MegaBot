@@ -12,6 +12,9 @@
       buildInputs = with pkgs; [
         poetry
         python312
+
+        libopus
+        ffmpeg_6
       ];
 
       shellHook = ''
