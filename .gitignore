@@ -8,3 +8,4 @@ dist/
 .coverage
 test.conf
 tmp_media/
+cookies/

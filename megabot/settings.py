@@ -39,7 +39,11 @@ DEFAULT_LOGGING_SETTINGS = {
     }
 }
 DEFAULT_PLAYER_SETTINGS = {
-    "mediapath": f"{SCRIPT_PATH}/tmp_media/"
+    "mediapath": f"{SCRIPT_PATH.parent.resolve()}/tmp_media/",
+    "yt_dlp": {
+        "cookies": False,
+        "cookies_path": f"{SCRIPT_PATH.parent.resolve()}/cookies/cookies.txt"
+    }
 }
 
 argConsts = {

@@ -3,11 +3,10 @@ import os
 import re
 import pathlib
 import yt_dlp
-import asyncio
 import discord
 
 from contextlib import chdir
-from discord import PCMVolumeTransformer, FFmpegPCMAudio
+from discord import FFmpegOpusAudio
 from megabot.settings import settings
 
 
@@ -62,40 +61,30 @@ class Song:
         self.download_path = pathlib.Path(settings.player.mediapath).resolve()
         self.valid = False
         self.status = "nothing"
-        self.ytdl_options_info = {
+        self.ffmpeg_options = "-vn"
+        self.ytdl_options = {
             'format': 'bestaudio/best',
-            'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
+            'quiet': True,
             'restrictfilenames': True,
             'noplaylist': True,
             'default_search': 'auto',
-            'source_address': '0.0.0.0',
-        }
-        self.ytdl_format_options_download = {
-            "format": "bestaudio/best",
-            'restrictfilenames': True,
-            "noplaylist": True,
             "progress_hooks": [self.progress_hook],
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
                 'preferredcodec': self.codec,
             }]
         }
-        self.ytdl_format_options_stream = {
-            "format": "bestaudio/best",
-            'restrictfilenames': True,
-            "noplaylist": True,
-        }
-        self.ffmpeg_options = {
-            "options": "-vn  -acodec copy",
-            "before_options": "-allowed_extensions ALL"
-        }
+
+        if settings.player.yt_dlp.cookies:
+            self.ytdl_options["cookiefile"] = settings.player.yt_dlp.cookies_path
+
         self.get_infos(content)
 
     async def play(self):
         source = self.stream_url
         if not self.stream:
             source = str(pathlib.Path(f"{self.download_path}/{self.download()}").resolve())
-        return discord.FFmpegPCMAudio(source, **self.ffmpeg_options)
+        return FFmpegOpusAudio(source, options=self.ffmpeg_options)
 
     def get_infos(self, content: str) -> None:
         """ gathering song/ audio file infos
@@ -113,7 +102,7 @@ class Song:
             content = self.check_url(content)
 
         try:
-            with yt_dlp.YoutubeDL(self.ytdl_options_info) as ydl:
+            with yt_dlp.YoutubeDL(self.ytdl_options) as ydl:
                 infos = ydl.extract_info(content, download=False)
             self.valid = True
         except Exception as exc:
@@ -191,7 +180,7 @@ class Song:
         try:
             with chdir(self.download_path):
                 try:
-                    with yt_dlp.YoutubeDL(self.ytdl_format_options_download) as ydl:
+                    with yt_dlp.YoutubeDL(self.ytdl_options) as ydl:
                         result = ydl.extract_info(self.url, download=True)
                     self.filename = self.__prepare_filename(ydl.prepare_filename(result))
                 except Exception as exc:
