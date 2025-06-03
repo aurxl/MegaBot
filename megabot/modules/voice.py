@@ -36,7 +36,7 @@ class Voice(commands.Cog):
         logger.debug(f"{ctx.author.name} requested to join into channel {channel.name}")
         if ctx.voice_client is not None:
             return await ctx.voice_client.move_to(channel)
-        await channel.connect()
+        return await channel.connect()
 
     @commands.command(name="leave")
     async def leave(self, ctx):

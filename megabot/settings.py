@@ -38,6 +38,9 @@ DEFAULT_LOGGING_SETTINGS = {
         "level": 0
     }
 }
+DEFAULT_PLAYER_SETTINGS = {
+    "mediapath": f"{SCRIPT_PATH}/tmp_media/"
+}
 
 argConsts = {
     "PROG": __package__,
@@ -95,6 +98,7 @@ def __config_settings() -> LazySettings:
                 discord=DEFAULT_DISCORD_SETTINGS,
                 w2g=DEFAULT_W2G_SETTINGS,
                 logging=DEFAULT_LOGGING_SETTINGS,
+                player=DEFAULT_PLAYER_SETTINGS,
                 yaml_loader="safe_load"
             )
     raise FileNotFoundError("No config file found")

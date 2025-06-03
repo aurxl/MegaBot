@@ -1,9 +1,11 @@
 #!/usr/bin/env python
 import os
-from contextlib import chdir
-
+import re
+import pathlib
 import yt_dlp
-from discord.ext.commands import bot_has_permissions
+
+from contextlib import chdir
+from megabot.settings import settings
 
 
 class Song:
@@ -52,7 +54,8 @@ class Song:
         self.channel_url = ""
         self.thumbnail_url = ""
         self.filename = ""
-        self.download_path = "tmp_media"
+        self.codec = "m4a"
+        self.download_path = pathlib.Path(settings.player.mediapath).resolve()
         self.valid = False
         self.status = "nothing"
         self.ytdl_options_info = {
@@ -68,7 +71,7 @@ class Song:
             "progress_hooks": [self.progress_hook],
             'postprocessors': [{
                 'key': 'FFmpegExtractAudio',
-                'preferredcodec': 'm4a',
+                'preferredcodec': self.codec,
             }]
         }
         self.get_infos(content)
@@ -175,13 +178,17 @@ class Song:
                 try:
                     with yt_dlp.YoutubeDL(self.ytdl_options_download) as ydl:
                         result = ydl.extract_info(self.url, download=True)
-                    self.filename = ydl.prepare_filename(result)
+                    self.filename = self.__prepare_filename(ydl.prepare_filename(result))
                 except Exception as exc:
                     raise Exception(f"failed downloading {self.url}") from exc
         except Exception as exc:
             raise Exception(f"cant go to dir {self.download_path}") from exc
 
         return self.filename
+
+    def __prepare_filename(self, file_name) -> str:
+        base_name = re.match(r'(.*)\.[^.]+$', file_name).group(1)
+        return f"{base_name}.{self.codec}"
 
     def progress_hook(self, d) -> None:
         """ ytdl download progress
