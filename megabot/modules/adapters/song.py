@@ -3,7 +3,6 @@ import os
 import re
 import pathlib
 import yt_dlp
-import discord
 
 from contextlib import chdir
 from discord import FFmpegOpusAudio
@@ -49,19 +48,20 @@ class Song:
 
         self.stream = stream
         self.infos = dict()
-        self.title = ""
-        self.url = ""
-        self.channel = ""
-        self.duration = ""
-        self.stream_url = ""
-        self.channel_url = ""
-        self.thumbnail_url = ""
-        self.filename = ""
+        self.title = str()
+        self.url = str()
+        self.channel = str()
+        self.duration = str()
+        self.stream_url = str()
+        self.channel_url = str()
+        self.thumbnail_url = str()
+        self.filename = str()
         self.codec = "m4a"
         self.download_path = pathlib.Path(settings.player.mediapath).resolve()
         self.valid = False
         self.status = "nothing"
         self.ffmpeg_options = "-vn"
+        self.ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -timeout 5"
         self.ytdl_options = {
             'format': 'bestaudio/best',
             'quiet': True,
@@ -80,11 +80,16 @@ class Song:
 
         self.get_infos(content)
 
-    async def play(self):
+    async def player(self):
+        """  provides a functioning Opus Player
+
+        Returning a discord.FFmpegOpusAudio Object to pass it as a audio
+        source directly into voice_client.
+        """
         source = self.stream_url
         if not self.stream:
             source = str(pathlib.Path(f"{self.download_path}/{self.download()}").resolve())
-        return FFmpegOpusAudio(source, options=self.ffmpeg_options)
+        return FFmpegOpusAudio(source, before_options=self.ffmpeg_before_options,options=self.ffmpeg_options)
 
     def get_infos(self, content: str) -> None:
         """ gathering song/ audio file infos

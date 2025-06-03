@@ -14,16 +14,34 @@ class Music(commands.Cog):
 
         logger.info("Music module enabled")
 
-
     async def __add_to_queue(self, song:Song) -> None:
         self.song_queue.append(song)
 
     async def __skip_song(self) -> None:
         del self.song_queue[0]
 
+    @staticmethod
+    async def send_playing_message(ctx, song:Song, stream:bool=False) -> None:
+        h = int(song.duration) // 3600
+        m = (int(song.duration) % 3600) // 60
+        s = (int(song.duration) % 3600) % 60
+
+        message = f"""
+**{"Playing" if not stream else "Streaming"}**: `{song.title}`
+
+Channel: {song.channel}
+Duration: {str(h)+':' if h>0 else ""}{m:02}:{s:02}
+
+```
+{song.url}
+```
+        """
+
+        await ctx.send(message)
+
     @commands.command(name="play")
-    async def play(self, ctx, *, request:str):
-        """Plays music from YT"""
+    async def play(self, ctx, *, request:str) -> None:
+        """Plays files downloaded from YT"""
         voice_client = ctx.voice_client
 
         logger.debug(f"{ctx.author.name} requested to play {request}")
@@ -37,13 +55,12 @@ class Music(commands.Cog):
         song_queue.extend(self.song_queue)
         self.song_queue = song_queue
 
-        # song.download()
-        # await ctx.send(f"Playing: {song.title}")
-        # file = f"{song.download_path}/{song.filename}"
-        # voice_client.play(FFmpegOpusAudio(file))
+        async with ctx.typing():
+            player = await song.player()
+            voice_client.play(player)
 
-        player = await song.play()
-        voice_client.play(player)
+        await self.send_playing_message(ctx, song=song)
+        logger.debug(f"Playing {song.infos}")
 
     @commands.command(name="stream")
     async def stream(self, ctx, *, request:str):
@@ -61,10 +78,12 @@ class Music(commands.Cog):
         song_queue.extend(self.song_queue)
         self.song_queue = song_queue
 
-        await ctx.send(f"Playing: {song.title}")
-        player = await song.play()
-        # voice_client.play(FFmpegOpusAudio(song.url))
-        voice_client.play(player)
+        async with ctx.typing():
+            player = await song.player()
+            voice_client.play(player)
+
+        await self.send_playing_message(ctx, song=song, stream=True)
+        logger.debug(f"Streaming {song.infos}")
 
     @commands.command(name="stop")
     async def stop(self, ctx):
