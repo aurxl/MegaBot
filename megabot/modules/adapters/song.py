@@ -76,7 +76,7 @@ class Song:
         }
 
         if settings.player.yt_dlp.cookies:
-            self.ytdl_options["cookiefile"] = settings.player.yt_dlp.cookies_path
+            self.ytdl_options["cookiefile"] = settings.player.yt_dlp.cookiefile
 
         self.get_infos(content)
 

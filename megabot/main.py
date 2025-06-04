@@ -3,13 +3,16 @@
 import asyncio
 import logging
 import atexit
+import os
+import pathlib
 
 from megabot.discord import Bot
 from megabot.settings import settings
 
 logger = logging.getLogger(__package__)
 
-def on_shutdown() -> None:
+async def on_shutdown(bot) -> None:
+    await bot.close()
     logger.info("MegaBot shutting down")
 
 async def load_modules(bot) -> None:
@@ -19,9 +22,22 @@ async def load_modules(bot) -> None:
         except Exception as exc:
             logger.fatal(f"Failed to load module: {exc}")
 
+def check_cookiepath() -> None:
+    if settings.player.yt_dlp.cookies:
+        cookiefile_path = pathlib.Path(str(settings.player.yt_dlp.cookiefile)).parent.resolve()
+        if not os.path.exists(cookiefile_path):
+            try:
+                os.mkdir(cookiefile_path)
+                logger.debug(f"created dir {cookiefile_path} for cookies")
+            except Exception as exc:
+                raise Exception(f"Cant create directory {cookiefile_path}") from exc
+
 def main() -> None:
-    atexit.register(on_shutdown)
+
+    check_cookiepath()
+
     megabot = Bot()
+    atexit.register(asyncio.run, on_shutdown(megabot))
     asyncio.run(load_modules(megabot))
     megabot.activate()
 

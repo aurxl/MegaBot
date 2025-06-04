@@ -42,7 +42,7 @@ DEFAULT_PLAYER_SETTINGS = {
     "mediapath": f"{SCRIPT_PATH.parent.resolve()}/tmp_media/",
     "yt_dlp": {
         "cookies": False,
-        "cookies_path": f"{SCRIPT_PATH.parent.resolve()}/cookies/cookies.txt"
+        "cookiefile": f"{SCRIPT_PATH.parent.resolve()}/cookies/cookies.txt"
     }
 }
 
@@ -118,10 +118,10 @@ def __merge_settings(file_config:LazySettings, cli_args:argparse.Namespace) -> N
 def __evaluate_settings(config:LazySettings) -> None:
     assert config.discord, "Discord Key is defined, but no values assigned"
     assert config.w2g, "W2G Key is defined, but no values assigned"
-    assert config.w2g, "W2G Key is defined, but no values assigned"
 
     assert config.discord.token, "Discord token required"
-    assert config.w2g.token, "W2G token required"
+    if config.w2g.enable:
+        assert config.w2g.token, "W2G token required"
 
 def __settings() -> LazySettings:
     config = __config_settings()
