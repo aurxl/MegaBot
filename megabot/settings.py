@@ -14,22 +14,31 @@ CONFIG_DEFAULT_PATHS = [
 ]
 VALID_CONFIG_NAMES = ["megabot.yml", "megabot.yaml"]
 REQUIRED_CONF_OPTIONS = [("Discord", "token"), ("w2g", "token")]
+
 DEFAULT_DISCORD_SETTINGS = {
     "token": "",
     "prefix": "!",
-    "owner": "",
-    "admin": "",
-    "mod": "",
-    "blacklist": [],
-    "modules": [
-        "core"
-    ]
+}
+DEFAULT_MEGABOT_SETTINGS = {
+    "datapath": "/opt/megabot"
+}
+DEFAULT_CORE_SETTINGS = {
+    "enabled": True
+}
+DEFAULT_VOICE_SETTINGS = {
+    "enabled": False
+}
+DEFAULT_MUSIC_SETTINGS = {
+    "enabled": False,
+    "mediapath": "",
+    "yt_dlp": {
+        "cookies": False,
+        "cookiefile": ""
+    }
 }
 DEFAULT_W2G_SETTINGS = {
-    "enable": False,
-    "token": "",
-    "channel": "",
-    "streamer": ""
+    "enabled": False,
+    "token": ""
 }
 DEFAULT_LOGGING_SETTINGS = {
     "path": LOGGING_DEFAULT_PATH,
@@ -38,12 +47,11 @@ DEFAULT_LOGGING_SETTINGS = {
         "level": 0
     }
 }
-DEFAULT_PLAYER_SETTINGS = {
-    "mediapath": f"{SCRIPT_PATH.parent.resolve()}/tmp_media/",
-    "yt_dlp": {
-        "cookies": False,
-        "cookiefile": f"{SCRIPT_PATH.parent.resolve()}/cookies/cookies.txt"
-    }
+DEFAULT_MODULES_SETTINGS = {
+    "core": DEFAULT_CORE_SETTINGS,
+    "voice": DEFAULT_VOICE_SETTINGS,
+    "music": DEFAULT_MUSIC_SETTINGS,
+    "w2g": DEFAULT_W2G_SETTINGS
 }
 
 argConsts = {
@@ -100,9 +108,9 @@ def __config_settings() -> LazySettings:
                 settings_files=VALID_CONFIG_NAMES,
                 merge_enabled=True,
                 discord=DEFAULT_DISCORD_SETTINGS,
-                w2g=DEFAULT_W2G_SETTINGS,
+                megabot=DEFAULT_MEGABOT_SETTINGS,
                 logging=DEFAULT_LOGGING_SETTINGS,
-                player=DEFAULT_PLAYER_SETTINGS,
+                modules=DEFAULT_MODULES_SETTINGS,
                 yaml_loader="safe_load"
             )
     raise FileNotFoundError("No config file found")
@@ -117,11 +125,10 @@ def __merge_settings(file_config:LazySettings, cli_args:argparse.Namespace) -> N
 
 def __evaluate_settings(config:LazySettings) -> None:
     assert config.discord, "Discord Key is defined, but no values assigned"
-    assert config.w2g, "W2G Key is defined, but no values assigned"
 
     assert config.discord.token, "Discord token required"
-    if config.w2g.enable:
-        assert config.w2g.token, "W2G token required"
+    if config.modules.w2g.enabled:
+        assert config.modules.w2g.token, "W2G token required"
 
 def __settings() -> LazySettings:
     config = __config_settings()

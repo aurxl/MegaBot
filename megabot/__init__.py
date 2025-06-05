@@ -6,5 +6,4 @@ import logging
 setup_logging()
 
 logger = logging.getLogger('megabot')
-logger.info("MegaBot started")
-logger.debug(f"Loaded settings: {settings.as_dict()}")
+logger.info("Start Megabot ...")

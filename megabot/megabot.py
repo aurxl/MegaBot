@@ -18,10 +18,10 @@ class SignalHandler:
 
         self.loop.add_signal_handler(signal.SIGTERM, self.on_shutdown)
         self.loop.add_signal_handler(signal.SIGINT, self.on_shutdown)
-    
+
     def on_shutdown(self):
         logger.info("MegaBot shutting down")
-        self.loop.create_task(self.bot.close())    
+        self.loop.create_task(self.bot.close())
 
 
 class MegaBot(commands.Bot):
@@ -42,6 +42,8 @@ class MegaBot(commands.Bot):
         self.run(settings.discord.token, log_handler=None, root_logger=True)
 
     async def on_ready(self):
+        logger.debug(f"Loaded settings: {settings.as_dict()}")
+        logger.info("MegaBot started!")
         logger.info(f"Logged into discord as {self.user}")
 
     async def on_message(self, message):

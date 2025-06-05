@@ -75,8 +75,8 @@ class Song:
             }]
         }
 
-        if settings.player.yt_dlp.cookies:
-            self.ytdl_options["cookiefile"] = settings.player.yt_dlp.cookiefile
+        if settings.music.yt_dlp.cookies:
+            self.ytdl_options["cookiefile"] = settings.music.yt_dlp.cookiefile
 
         self.get_infos(content)
 
