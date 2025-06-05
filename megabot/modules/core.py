@@ -2,13 +2,13 @@ import logging
 import discord
 
 from discord.ext import commands
-from megabot.discord import Bot
+from megabot.megabot import MegaBot
 
 logger = logging.getLogger(__package__)
 
 
 class Core(commands.Cog):
-    def __init__(self, bot:Bot ) -> None:
+    def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
         logger.info("Core module enabled")
 
@@ -38,5 +38,5 @@ class Core(commands.Cog):
         await ctx.send(msg)
         logger.debug(f"Send: {msg} to {ctx.author.global_name}")
 
-async def setup(bot:Bot):
+async def setup(bot:MegaBot):
    await bot.add_cog(Core(bot))

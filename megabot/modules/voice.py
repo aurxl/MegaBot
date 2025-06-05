@@ -3,12 +3,12 @@ from typing import Optional
 import discord
 
 from discord.ext import commands
-from megabot.discord import Bot
+from megabot.megabot import MegaBot
 
 logger = logging.getLogger(__package__)
 
 class Voice(commands.Cog):
-    def __init__(self, bot:Bot ) -> None:
+    def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
         self.song_queue = []
 
@@ -48,5 +48,5 @@ class Voice(commands.Cog):
             return await ctx.voice_client.disconnect()
         await ctx.send("There is no channel to leave")
 
-async def setup(bot):
+async def setup(bot:MegaBot):
    await bot.add_cog(Voice(bot))

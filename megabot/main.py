@@ -2,14 +2,43 @@
 
 import asyncio
 import logging
-import atexit
+import signal
 import os
 import pathlib
 
-from megabot.discord import Bot
+from megabot.megabot import MegaBot
 from megabot.settings import settings
 
 logger = logging.getLogger(__package__)
+
+
+class SignalHandler:
+    """custom signal handler
+
+    Especially when gmu is running as a systemd service,
+    handling signals come in handy. When you want to
+    manually stop the service eg. with `systemctl stop gmu`
+    systemd is sending a SIGTERM signal to that process.
+    With the build-in signal lib we can catch those signals
+    and perform actions such as turning off the displays etc.
+
+    Note: SIGKILL signals cant be catched by the process itself
+    """
+    def __init__(self, bot) -> None:
+        self.bot = bot
+        self.loop = bot.loop or asyncio.get_event_loop()
+
+        signal.signal(signal.SIGTERM, self.on_shutdown)
+        signal.signal(signal.SIGINT, self.on_shutdown)
+    
+    def on_shutdown(self, _signo, _stack_frame):
+        logger.info("MegaBot shutting down")
+        self.loop.create_task(self.shutdown())    
+
+    async def shutdown(self):
+        await self.bot.close()
+        # await self.bot.close()
+
 
 async def on_shutdown(bot) -> None:
     await bot.close()
@@ -33,11 +62,10 @@ def check_cookiepath() -> None:
                 raise Exception(f"Cant create directory {cookiefile_path}") from exc
 
 def main() -> None:
-
     check_cookiepath()
 
-    megabot = Bot()
-    atexit.register(asyncio.run, on_shutdown(megabot))
+    megabot = MegaBot()
+    # SignalHandler(bot=megabot)
     asyncio.run(load_modules(megabot))
     megabot.activate()
 

@@ -2,13 +2,13 @@ import logging
 
 from discord import FFmpegOpusAudio
 from discord.ext import commands
-from megabot.discord import Bot
+from megabot.megabot import MegaBot
 from megabot.modules.adapters.song import Song
 
 logger = logging.getLogger(__package__)
 
 class Music(commands.Cog):
-    def __init__(self, bot:Bot ) -> None:
+    def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
         self.song_queue = []
 
@@ -125,5 +125,5 @@ Duration: {str(h)+':' if h>0 else ""}{m:02}:{s:02}
         voice_client.resume()
 
 
-async def setup(bot):
+async def setup(bot:MegaBot):
    await bot.add_cog(Music(bot))
