@@ -57,11 +57,11 @@ class Song:
         self.thumbnail_url = str()
         self.filename = str()
         self.codec = "m4a"
-        self.download_path = pathlib.Path(settings.player.mediapath).resolve()
+        self.download_path = pathlib.Path(settings.modules.music.mediapath).resolve()
         self.valid = False
         self.status = "nothing"
         self.ffmpeg_options = "-vn"
-        self.ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -timeout 5"
+        self.ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -timeout 5" if stream else None
         self.ytdl_options = {
             'format': 'bestaudio/best',
             'quiet': True,
@@ -75,8 +75,8 @@ class Song:
             }]
         }
 
-        if settings.music.yt_dlp.cookies:
-            self.ytdl_options["cookiefile"] = settings.music.yt_dlp.cookiefile
+        if settings.modules.music.yt_dlp.cookies:
+            self.ytdl_options["cookiefile"] = settings.modules.music.yt_dlp.cookiefile
 
         self.get_infos(content)
 

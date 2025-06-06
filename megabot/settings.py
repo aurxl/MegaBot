@@ -20,7 +20,8 @@ DEFAULT_DISCORD_SETTINGS = {
     "prefix": "!",
 }
 DEFAULT_MEGABOT_SETTINGS = {
-    "datapath": "/opt/megabot"
+    "datapath": "/opt/megabot",
+    "default_status": "discord"
 }
 DEFAULT_CORE_SETTINGS = {
     "enabled": True

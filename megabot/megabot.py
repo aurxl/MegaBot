@@ -6,6 +6,7 @@ import asyncio
 import signal
 
 from discord.ext import commands
+from discord import Activity, ActivityType
 from megabot.settings import settings
 
 logger = logging.getLogger(__package__)
@@ -27,6 +28,7 @@ class SignalHandler:
 class MegaBot(commands.Bot):
     def __init__(self):
         self.command_prefix = settings.discord.prefix
+        self.default_activity = settings.megabot.default_status
 
         intents = discord.Intents.default()
         intents.typing = False
@@ -46,7 +48,14 @@ class MegaBot(commands.Bot):
         logger.info("MegaBot started!")
         logger.info(f"Logged into discord as {self.user}")
 
+        await MegaBot.set_default_activity(self, self.default_activity)
+
     async def on_message(self, message):
         logger.info(f'Message from {message.author}: {message.content}')
 
         await self.process_commands(message)
+
+    @staticmethod
+    async def set_default_activity(bot, status):
+        status = Activity(type=ActivityType.playing, name=status)
+        await bot.change_presence(activity=status)

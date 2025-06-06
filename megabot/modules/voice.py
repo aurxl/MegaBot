@@ -1,6 +1,5 @@
 import logging
-from typing import Optional
-import discord
+import asyncio
 
 from discord.ext import commands
 from megabot.megabot import MegaBot
@@ -34,8 +33,18 @@ class Voice(commands.Cog):
                 return await ctx.send(f"There is no channel {channel}")
 
         logger.debug(f"{ctx.author.name} requested to join into channel {channel.name}")
-        if ctx.voice_client is not None:
-            return await ctx.voice_client.move_to(channel)
+        voice_client = ctx.voice_client
+        if voice_client is not None:
+            if voice_client.is_playing():
+                voice_client.pause()
+                await asyncio.sleep(1)
+                await voice_client.move_to(channel)
+                await asyncio.sleep(1)
+                voice_client.resume()
+            else:
+                await voice_client.move_to(channel)
+            logger.debug(f"Moved to channel {channel.name}")
+            return
         return await channel.connect()
 
     @commands.command(name="leave")
