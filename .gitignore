@@ -7,5 +7,4 @@ dist/
 .pytest_cache/
 .coverage
 test.conf
-tmp_media/
-cookies/
+datapath/
