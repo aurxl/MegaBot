@@ -27,6 +27,7 @@ class Music(commands.Cog):
 
     @staticmethod
     async def send_playing_message(ctx, song:Song, stream:bool=False) -> None:
+        """Preparing and sending the now playing message to the chat."""
         h = int(song.duration) // 3600
         m = (int(song.duration) % 3600) // 60
         s = (int(song.duration) % 3600) % 60
@@ -49,15 +50,29 @@ class Music(commands.Cog):
 
     @tasks.loop(seconds=10)
     async def _update_activity(self):
+        """Updating the activity status based to represent current playing state """
         if self.current_song and not self.is_pause:
             return await self.__set_listening_activity(title=self.current_song.title)
         await MegaBot.set_default_activity(self.bot)
 
     async def __housekeeping(self, ctx, song):
+        """Keeping everything tidy after playing.
+
+        Assumed to be running after a play was called to remove the song from first queue and
+        also start next queue items if there are any.
+        """
         if self.song_queue and self.song_queue[0] == song:
             del self.song_queue[0]
 
-        await asyncio.sleep(song.duration)
+        sleep_interval = 0.1
+        sleeped = 0
+        to_sleep = song.duration
+        while sleeped < to_sleep:
+            await asyncio.sleep(sleep_interval)
+            sleeped += sleep_interval
+
+            if self.is_pause:
+                to_sleep += sleep_interval
 
         if self.current_song == song:
             self.current_song = None
