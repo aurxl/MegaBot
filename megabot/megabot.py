@@ -51,8 +51,7 @@ class MegaBot(commands.Bot):
         await MegaBot.set_default_activity(self, self.default_activity)
 
     async def on_message(self, message):
-        logger.info(f'Message from {message.author}: {message.content}')
-
+        logger.debug(f'Message from {message.author}: {message.content}')
         await self.process_commands(message)
 
     @staticmethod

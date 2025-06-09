@@ -11,7 +11,6 @@ from megabot.settings import settings
 
 logger = logging.getLogger(__package__)
 
-
 async def load_modules(bot:MegaBot) -> None:
     for module in settings.modules.keys():
         try:
@@ -42,7 +41,7 @@ def create_directories() -> None:
                 os.mkdir(dir)
                 logger.debug(f"created directory {dir}")
             except Exception as exc:
-                msg = f"Can't create directory {dir}"
+                msg = f"Can't create directory {dir}: {exc}"
                 logger.debug(msg)
                 raise Exception(msg) from exc
 

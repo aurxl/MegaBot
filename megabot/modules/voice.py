@@ -9,7 +9,6 @@ logger = logging.getLogger(__package__)
 class Voice(commands.Cog):
     def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
-        self.song_queue = []
 
         logger.info("Voice module enabled")
 

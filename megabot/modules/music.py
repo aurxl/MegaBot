@@ -11,10 +11,14 @@ from textwrap import dedent
 logger = logging.getLogger(__package__)
 
 class Music(commands.Cog):
+    """
+
+    """
     def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
         self.song_queue = []
         self.current_song = ""
+        self.is_pause = False
 
         logger.info("Music module enabled")
 
@@ -38,8 +42,9 @@ class Music(commands.Cog):
         await ctx.send(dedent(message))
 
     async def __housekeeping(self, ctx, song):
-        if self.song_queue[0] == song:
+        if self.song_queue and self.song_queue[0] == song:
             del self.song_queue[0]
+
 
         await asyncio.sleep(song.duration)
 
@@ -68,12 +73,13 @@ class Music(commands.Cog):
                 return await ctx.send("Nothing to play, queue is empty")
             song = self.song_queue[0]
 
+        if not isinstance(song, Song):
+            song = Song(content=song, loop=self.bot.loop, stream=stream)
+
+        # Call stop after song object created, so music is still played, while new sing infos are fetched
         if voice_client.is_playing():
             stop_command = self.bot.get_command("stop")
             await ctx.invoke(stop_command)
-
-        if not isinstance(song, Song):
-            song = Song(content=song, loop=self.bot.loop, stream=stream)
 
         async with ctx.typing():
             player = await song.player()
@@ -81,7 +87,7 @@ class Music(commands.Cog):
 
         await self.__set_listening_activity(title=song.title)
         await self.send_playing_message(ctx, song=song, stream=stream)
-        logger.debug(f"{"Playing" if not stream else "Streaming"}: {song.title}")
+        logger.info(f"{"Playing" if not stream else "Streaming"}: {song.title}")
 
         await self.__housekeeping(ctx, song)
 
@@ -124,6 +130,11 @@ class Music(commands.Cog):
             return await ctx.send("Nothing to stop from playing")
 
         voice_client.stop()
+        try:
+            status = settings.megabot.default_status
+            await MegaBot.set_default_activity(self.bot, status)
+        except Exception as exc:
+            logger.warning(f"Failed setting status after stopped {exc}")
 
     @commands.command(name="pause")
     async def pause(self, ctx):
@@ -151,8 +162,6 @@ class Music(commands.Cog):
             return await ctx.send(f"Already playing, can't resume")
 
         voice_client.resume()
-
-
 
 async def setup(bot:MegaBot):
    await bot.add_cog(Music(bot))
