@@ -60,8 +60,8 @@ class Song:
         self.download_path = pathlib.Path(settings.modules.music.mediapath).resolve()
         self.valid = False
         self.status = "nothing"
-        self.ffmpeg_options = "-vn"
-        self.ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -timeout 5" if stream else None
+        self.ffmpeg_options = "-vn -timeout 5000000"
+        self.ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5" if stream else None
         self.ytdl_options = {
             'format': 'bestaudio/best',
             'quiet': True,
