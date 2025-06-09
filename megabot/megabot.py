@@ -28,7 +28,6 @@ class SignalHandler:
 class MegaBot(commands.Bot):
     def __init__(self):
         self.command_prefix = settings.discord.prefix
-        self.default_activity = settings.megabot.default_status
 
         intents = discord.Intents.default()
         intents.typing = False
@@ -48,13 +47,22 @@ class MegaBot(commands.Bot):
         logger.info("MegaBot started!")
         logger.info(f"Logged into discord as {self.user}")
 
-        await MegaBot.set_default_activity(self, self.default_activity)
+        await MegaBot.set_default_activity(self)
+        await self.load_modules()
 
     async def on_message(self, message):
         logger.debug(f'Message from {message.author}: {message.content}')
         await self.process_commands(message)
 
+    async def load_modules(self) -> None:
+        for module in settings.modules.keys():
+            try:
+                if settings.modules[module].enabled:
+                    await self.load_extension(f"{__package__}.modules.{module}")
+            except Exception as exc:
+                logger.fatal(f"Failed to load module: {exc}")
+
     @staticmethod
-    async def set_default_activity(bot, status):
-        status = Activity(type=ActivityType.playing, name=status)
+    async def set_default_activity(bot):
+        status = Activity(type=ActivityType.playing, name=settings.megabot.default_status)
         await bot.change_presence(activity=status)

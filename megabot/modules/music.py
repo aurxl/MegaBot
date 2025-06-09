@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from discord.ext import commands
+from discord.ext import commands, tasks
 from discord import Activity, ActivityType
 from megabot.settings import settings
 from megabot.megabot import MegaBot
@@ -17,8 +17,11 @@ class Music(commands.Cog):
     def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
         self.song_queue = []
-        self.current_song = ""
+        self.current_song = None
         self.is_pause = False
+
+        self.default_status_str = settings.megabot.default_status
+        self._update_activity.start()
 
         logger.info("Music module enabled")
 
@@ -41,15 +44,20 @@ class Music(commands.Cog):
 
         await ctx.send(dedent(message))
 
+    async def unload(self):
+        self._update_activity.cancel()
+
+    @tasks.loop(seconds=10)
+    async def _update_activity(self):
+        if self.current_song and not self.is_pause:
+            return await self.__set_listening_activity(title=self.current_song.title)
+        await MegaBot.set_default_activity(self.bot)
+
     async def __housekeeping(self, ctx, song):
         if self.song_queue and self.song_queue[0] == song:
             del self.song_queue[0]
 
-
         await asyncio.sleep(song.duration)
-
-        status = settings.megabot.default_status
-        await MegaBot.set_default_activity(self.bot, status)
 
         if self.song_queue:
             await self.play(ctx, self.song_queue[0])
@@ -81,11 +89,14 @@ class Music(commands.Cog):
             stop_command = self.bot.get_command("stop")
             await ctx.invoke(stop_command)
 
+        self.is_pause = False
+        self.current_song = song
+
         async with ctx.typing():
             player = await song.player()
             voice_client.play(player)
 
-        await self.__set_listening_activity(title=song.title)
+        await self._update_activity()
         await self.send_playing_message(ctx, song=song, stream=stream)
         logger.info(f"{"Playing" if not stream else "Streaming"}: {song.title}")
 
@@ -129,12 +140,9 @@ class Music(commands.Cog):
         if voice_client is None or not voice_client.is_playing():
             return await ctx.send("Nothing to stop from playing")
 
+        self.current_song = None
+        await self._update_activity()
         voice_client.stop()
-        try:
-            status = settings.megabot.default_status
-            await MegaBot.set_default_activity(self.bot, status)
-        except Exception as exc:
-            logger.warning(f"Failed setting status after stopped {exc}")
 
     @commands.command(name="pause")
     async def pause(self, ctx):
@@ -146,6 +154,8 @@ class Music(commands.Cog):
         if voice_client is None or not voice_client.is_playing():
             return await ctx.send(f"Nothing to pause from playing")
 
+        self.is_pause = True
+        await self._update_activity()
         voice_client.pause()
 
     @commands.command(name="resume")
@@ -161,6 +171,8 @@ class Music(commands.Cog):
         if voice_client.is_playing():
             return await ctx.send(f"Already playing, can't resume")
 
+        self.is_pause = False
+        await self._update_activity()
         voice_client.resume()
 
 async def setup(bot:MegaBot):

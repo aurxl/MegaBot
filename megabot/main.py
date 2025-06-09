@@ -11,14 +11,6 @@ from megabot.settings import settings
 
 logger = logging.getLogger(__package__)
 
-async def load_modules(bot:MegaBot) -> None:
-    for module in settings.modules.keys():
-        try:
-            if settings.modules[module].enabled:
-                await bot.load_extension(f"{__package__}.modules.{module}")
-        except Exception as exc:
-            logger.fatal(f"Failed to load module: {exc}")
-
 def create_directories() -> None:
     directories = [
         p.Path(str(settings.logging.path)),
@@ -48,8 +40,8 @@ def create_directories() -> None:
 def main() -> None:
     create_directories()
     megabot = MegaBot()
-    asyncio.run(load_modules(megabot))
     megabot.activate()
+
 
 if __name__ == "__main__":
     main()
