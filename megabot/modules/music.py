@@ -59,6 +59,9 @@ class Music(commands.Cog):
 
         await asyncio.sleep(song.duration)
 
+        if self.current_song == song:
+            self.current_song = None
+
         if self.song_queue:
             await self.play(ctx, self.song_queue[0])
 

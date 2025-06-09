@@ -3,15 +3,15 @@ import json
 import requests
 
 
-class w2g:
-    """ wg class.
+class WatchToGether:
+    """ WG class.
 
-    w2g class is responsible for creating rooms, customize and updating them.
+    WatchToGether class is responsible for creating rooms, customize and updating them.
     One created object is responsible for one room. Stream Key and custom
     settings are stored in that object. Therefore multiple objects can be
     created and later be referred for updating them.
 
-    A w2g object MUST be created by providing an API Key. Once the Object is
+    A WatchToGether object MUST be created by providing an API Key. Once the Object is
     created only ONE room can be held. Either create a room at the beginning,
     or create a new room later with the same object. Note that in this case
     you can only refer to the prevoius room if you saved the stream_key.
@@ -37,7 +37,7 @@ class w2g:
         self.bg_color = "#232929"
         self.bg_opacity = "90"
 
-    def create_room(self, url: str, bg_color: str = "", bg_opacity: str = "") -> str | str:
+    def create_room(self, url: str="", bg_color: str = "", bg_opacity: str = "") -> str | str:
         """ creating w2g room
 
         params:
@@ -46,9 +46,7 @@ class w2g:
         bg_opacity  -- if not already set, sets background opacity
 
         return:
-        self.room_link, self.stream_key -- in this func gathered
-                                           and set object attributes
-                                           (described in class docstring)
+        self.room_link
         """
 
         if bg_color != "":
@@ -76,12 +74,11 @@ class w2g:
             )
         except Exception as exc:
             raise Exception('failed post request') from exc
-        print(req.json())
         response = req.json()
 
         self.stream_key = response["streamkey"]
         self.room_link = f'https://w2g.tv/rooms/{response["streamkey"]}'
-        return self.room_link, self.stream_key
+        return self.room_link
 
     def update_room(self, url: str) -> bool:
         """ update currently playing video
