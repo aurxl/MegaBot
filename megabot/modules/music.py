@@ -32,7 +32,6 @@ class Music(commands.Cog):
     def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
         self.default_status_str = settings.megabot.default_status
-        # self._update_activity.start()
 
         self.guild_states:dict[int,GuildMusicContext] = {}
         for guild in self.bot.guilds:
@@ -59,16 +58,6 @@ class Music(commands.Cog):
         """
 
         await ctx.send(dedent(message))
-
-    async def unload(self):
-        self._update_activity.cancel()
-
-    @tasks.loop(seconds=10)
-    async def _update_activity(self):
-        """Updating the activity status based to represent current playing state """
-        if self.current_song and not self.is_pause:
-            return await self.__set_listening_activity(title=self.current_song.title)
-        await MegaBot.set_default_activity(self.bot)
 
     async def __housekeeping(self, ctx, song:Song):
         """Keeping everything tidy after playing.
@@ -132,7 +121,6 @@ class Music(commands.Cog):
             player = await song.player()
             voice_client.play(player)
 
-        # await self._update_activity()
         await self.send_playing_message(ctx, song=song, stream=stream)
         logger.info(f"{"Playing" if not stream else "Streaming"}: {song.title}")
 
@@ -180,7 +168,6 @@ class Music(commands.Cog):
             return await ctx.send("Nothing to stop from playing")
 
         mctx.current_song = None
-        # await self._update_activity()
         voice_client.stop()
 
     @commands.command(name="pause")
@@ -195,7 +182,6 @@ class Music(commands.Cog):
             return await ctx.send(f"Nothing to pause from playing")
 
         mctx.is_pause = True
-        # await self._update_activity()
         voice_client.pause()
 
     @commands.command(name="resume")
@@ -213,7 +199,6 @@ class Music(commands.Cog):
             return await ctx.send(f"Already playing, can't resume")
 
         mctx.is_pause = False
-        # await self._update_activity()
         voice_client.resume()
 
 async def setup(bot:MegaBot):
