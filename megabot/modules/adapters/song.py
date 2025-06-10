@@ -51,7 +51,7 @@ class Song:
         self.title = str()
         self.url = str()
         self.channel = str()
-        self.duration = str()
+        self.duration = int()
         self.stream_url = str()
         self.channel_url = str()
         self.thumbnail_url = str()
@@ -117,13 +117,13 @@ class Song:
         if not is_url:
             self.infos = self.infos["entries"][0]
 
-        self.title = self.infos["fulltitle"]
-        self.url = self.infos["original_url"]
-        self.channel = self.infos["channel"]
-        self.duration = self.infos["duration"]
-        self.stream_url = self.infos["url"]
-        self.channel_url = self.infos["channel_url"]
-        self.thumbnail_url = self.infos["thumbnail"]
+        self.title = str(self.infos["fulltitle"])
+        self.url = str(self.infos["original_url"])
+        self.channel = str(self.infos["channel"])
+        self.duration = int(self.infos["duration"])
+        self.stream_url = str(self.infos["url"])
+        self.channel_url = str(self.infos["channel_url"])
+        self.thumbnail_url = str(self.infos["thumbnail"])
 
     def reload_infos(self) -> bool:
         """regather infos

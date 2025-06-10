@@ -2,7 +2,7 @@ import asyncio
 import logging
 
 from discord.ext import commands, tasks
-from discord import Activity, ActivityType
+from discord import Activity, ActivityType, Guild
 from megabot.settings import settings
 from megabot.megabot import MegaBot
 from megabot.modules.adapters.song import Song
@@ -10,18 +10,33 @@ from textwrap import dedent
 
 logger = logging.getLogger(__package__)
 
+
+class GuildMusicContext:
+    """ Isolating Guilds
+
+    Holding music player states for each guild the bot is connected to.
+    This allows isolated Guild states.
+    """
+    def __init__(self, guild) -> None:
+        self.guild:Guild = guild
+        self.song_queue:list[Song] = []
+        self.current_song:Song = None
+        self.is_pause:bool = False
+
+
 class Music(commands.Cog):
     """
-
+    Handling the music associated commands. Music is actually everything that
+    is available on YouTube.
     """
     def __init__(self, bot:MegaBot ) -> None:
         self.bot = bot
-        self.song_queue = []
-        self.current_song = None
-        self.is_pause = False
-
         self.default_status_str = settings.megabot.default_status
-        self._update_activity.start()
+        # self._update_activity.start()
+
+        self.guild_states:dict[int,GuildMusicContext] = {}
+        for guild in self.bot.guilds:
+            self.guild_states[guild.id] = GuildMusicContext(guild)
 
         logger.info("Music module enabled")
 
@@ -55,14 +70,16 @@ class Music(commands.Cog):
             return await self.__set_listening_activity(title=self.current_song.title)
         await MegaBot.set_default_activity(self.bot)
 
-    async def __housekeeping(self, ctx, song):
+    async def __housekeeping(self, ctx, song:Song):
         """Keeping everything tidy after playing.
 
         Assumed to be running after a play was called to remove the song from first queue and
         also start next queue items if there are any.
         """
-        if self.song_queue and self.song_queue[0] == song:
-            del self.song_queue[0]
+        mctx:GuildMusicContext = self.guild_states[ctx.guild.id]
+
+        if mctx.song_queue and mctx.song_queue[0] == song:
+            del mctx.song_queue[0]
 
         sleep_interval = 0.1
         sleeped = 0
@@ -71,14 +88,14 @@ class Music(commands.Cog):
             await asyncio.sleep(sleep_interval)
             sleeped += sleep_interval
 
-            if self.is_pause:
+            if mctx.is_pause:
                 to_sleep += sleep_interval
 
-        if self.current_song == song:
-            self.current_song = None
+        if mctx.current_song == song:
+            mctx.current_song = None
 
-        if self.song_queue:
-            await self.play(ctx, self.song_queue[0])
+        if mctx.song_queue:
+            await self.play(ctx, mctx.song_queue[0])
 
     async def __set_listening_activity(self, title):
         status = Activity(type=ActivityType.listening, name=title)
@@ -87,6 +104,7 @@ class Music(commands.Cog):
     async def play(self, ctx, song: Song|str = "", stream=False):
         """Playing music from YT"""
         voice_client = ctx.voice_client
+        mctx:GuildMusicContext = self.guild_states[ctx.guild.id]
 
         logger.debug(f"{ctx.author.name} requested to play {song}")
 
@@ -95,9 +113,9 @@ class Music(commands.Cog):
             voice_client = await ctx.invoke(join_command)
 
         if not song:
-            if not self.song_queue:
+            if not mctx.song_queue:
                 return await ctx.send("Nothing to play, queue is empty")
-            song = self.song_queue[0]
+            song = mctx.song_queue[0]
 
         if not isinstance(song, Song):
             song = Song(content=song, loop=self.bot.loop, stream=stream)
@@ -107,14 +125,14 @@ class Music(commands.Cog):
             stop_command = self.bot.get_command("stop")
             await ctx.invoke(stop_command)
 
-        self.is_pause = False
-        self.current_song = song
+        mctx.is_pause = False
+        mctx.current_song = song
 
         async with ctx.typing():
             player = await song.player()
             voice_client.play(player)
 
-        await self._update_activity()
+        # await self._update_activity()
         await self.send_playing_message(ctx, song=song, stream=stream)
         logger.info(f"{"Playing" if not stream else "Streaming"}: {song.title}")
 
@@ -133,16 +151,18 @@ class Music(commands.Cog):
     @commands.command(name="queue", aliases=["q"])
     async def queue(self, ctx, *, request: str = ""):
         """{song} Adding song to queue OR Shows current queue if no song given"""
+        mctx:GuildMusicContext = self.guild_states[ctx.guild.id]
         if not request:
-            songs = [song.title for song in self.song_queue]
+            songs = [song.title for song in mctx.song_queue]
             return await ctx.send(f"Current queue:\n - {"\n - ".join(songs) if songs else "{empty}"}")
-        self.song_queue.append(Song(content=request, loop=self.bot.loop, stream=True))
+        mctx.song_queue.append(Song(content=request, loop=self.bot.loop, stream=True))
         logger.debug(f"Added a request to queue {request}")
 
     @commands.command(name="skip")
     async def skip(self, ctx):
         """Skips current played song from queue"""
-        if not self.song_queue:
+        mctx:GuildMusicContext = self.guild_states[ctx.guild.id]
+        if not mctx.song_queue:
             return await ctx.send("Queue is empty")
 
         ctx.voice_client.stop()
@@ -152,34 +172,37 @@ class Music(commands.Cog):
     async def stop(self, ctx):
         """Stops current played audio"""
         voice_client = ctx.voice_client
+        mctx:GuildMusicContext = self.guild_states[ctx.guild.id]
 
         logger.debug(f"{ctx.author.name} requested to stop playing")
 
         if voice_client is None or not voice_client.is_playing():
             return await ctx.send("Nothing to stop from playing")
 
-        self.current_song = None
-        await self._update_activity()
+        mctx.current_song = None
+        # await self._update_activity()
         voice_client.stop()
 
     @commands.command(name="pause")
     async def pause(self, ctx):
         """Pauses current played audio"""
         voice_client = ctx.voice_client
+        mctx:GuildMusicContext = self.guild_states[ctx.guild.id]
 
         logger.debug(f"{ctx.author.name} requested to pause playing")
 
         if voice_client is None or not voice_client.is_playing():
             return await ctx.send(f"Nothing to pause from playing")
 
-        self.is_pause = True
-        await self._update_activity()
+        mctx.is_pause = True
+        # await self._update_activity()
         voice_client.pause()
 
     @commands.command(name="resume")
     async def resume(self, ctx):
         """Resumes current played audio"""
         voice_client = ctx.voice_client
+        mctxGuildMusicContext = self.guild_states[ctx.guild.id]
 
         logger.debug(f"{ctx.author.name} requested to resume playing")
 
@@ -189,8 +212,8 @@ class Music(commands.Cog):
         if voice_client.is_playing():
             return await ctx.send(f"Already playing, can't resume")
 
-        self.is_pause = False
-        await self._update_activity()
+        mctx.is_pause = False
+        # await self._update_activity()
         voice_client.resume()
 
 async def setup(bot:MegaBot):
