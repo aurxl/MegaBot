@@ -2,20 +2,21 @@
 
 import discord
 import logging
-import asyncio
 import signal
 
+from asyncio import AbstractEventLoop
+from typing import Dict, Any, Optional
 from discord.ext import commands
-from discord import Activity, ActivityType
+from discord import Activity, ActivityType, Intents, Message
 from megabot.settings import settings
 
 logger = logging.getLogger(__package__)
 
 
 class SignalHandler:
-    def __init__(self, bot) -> None:
-        self.bot = bot
-        self.loop = bot.loop
+    def __init__(self, bot: "MegaBot") -> None:
+        self.bot: MegaBot = bot
+        self.loop: AbstractEventLoop = bot.loop
 
         self.loop.add_signal_handler(signal.SIGTERM, self.on_shutdown)
         self.loop.add_signal_handler(signal.SIGINT, self.on_shutdown)
@@ -27,9 +28,9 @@ class SignalHandler:
 
 class MegaBot(commands.Bot):
     def __init__(self):
-        self.command_prefix = settings.discord.prefix
+        self.command_prefix: str|Any = settings.discord.prefix
 
-        intents = discord.Intents.default()
+        intents: Intents = Intents.default()
         intents.typing = False
         intents.presences = False
         intents.members = True
@@ -50,7 +51,7 @@ class MegaBot(commands.Bot):
         await MegaBot.set_default_activity(self)
         await self.load_modules()
 
-    async def on_message(self, message):
+    async def on_message(self, message: Message):
         logger.debug(f'Message from {message.author}: {message.content}')
         await self.process_commands(message)
 
@@ -63,6 +64,6 @@ class MegaBot(commands.Bot):
                 logger.fatal(f"Failed to load module: {exc}")
 
     @staticmethod
-    async def set_default_activity(bot):
-        status = Activity(type=ActivityType.playing, name=settings.megabot.default_status)
+    async def set_default_activity(bot: commands.Bot):
+        status: Activity = Activity(type=ActivityType.playing, name=settings.megabot.default_status)
         await bot.change_presence(activity=status)

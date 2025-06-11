@@ -3,6 +3,7 @@ import os
 import re
 import pathlib
 import yt_dlp
+from typing import Dict, Any, Optional, List, Union
 
 from contextlib import chdir
 from discord import FFmpegOpusAudio
@@ -43,26 +44,26 @@ class Song:
     ytdl_options_format -- ytdl options for downloading the audio
     """
 
-    def __init__(self, content: str, stream=False, loop=None):
+    def __init__(self, content: str, stream: bool = False, loop: Optional[Any] = None):
         """ initialize object attributes."""
 
-        self.stream = stream
-        self.infos = dict()
-        self.title = str()
-        self.url = str()
-        self.channel = str()
-        self.duration = int()
-        self.stream_url = str()
-        self.channel_url = str()
-        self.thumbnail_url = str()
-        self.filename = str()
-        self.codec = "m4a"
-        self.download_path = pathlib.Path(settings.modules.music.mediapath).resolve()
-        self.valid = False
-        self.status = "nothing"
-        self.ffmpeg_options = "-vn -timeout 5000000"
-        self.ffmpeg_before_options = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5" if stream else None
-        self.ytdl_options = {
+        self.stream: bool = stream
+        self.infos: Dict[str, Any] = dict()
+        self.title: str = str()
+        self.url: str = str()
+        self.channel: str = str()
+        self.duration: int = int()
+        self.stream_url: str = str()
+        self.channel_url: str = str()
+        self.thumbnail_url: str = str()
+        self.filename: str = str()
+        self.codec: str = "m4a"
+        self.download_path: pathlib.Path = pathlib.Path(settings.modules.music.mediapath).resolve()
+        self.valid: bool = False
+        self.status: str = "nothing"
+        self.ffmpeg_options: str = "-vn -timeout 5000000"
+        self.ffmpeg_before_options: Optional[str] = "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5" if stream else None
+        self.ytdl_options: Dict[str, Any] = {
             'format': 'bestaudio/best',
             'quiet': True,
             'restrictfilenames': True,
@@ -80,13 +81,13 @@ class Song:
 
         self.get_infos(content)
 
-    async def player(self):
+    async def player(self) -> FFmpegOpusAudio:
         """  provides a functioning Opus Player
 
         Returning a discord.FFmpegOpusAudio Object to pass it as a audio
         source directly into voice_client.
         """
-        source = self.stream_url
+        source: str = self.stream_url
         if not self.stream:
             source = str(pathlib.Path(f"{self.download_path}/{self.download()}").resolve())
         return FFmpegOpusAudio(source, before_options=self.ffmpeg_before_options,options=self.ffmpeg_options)
@@ -100,7 +101,7 @@ class Song:
         content: str -- passed from class param
         """
 
-        is_url = True
+        is_url: bool = True
         if not self.check_url(content):
             is_url = False
         else:
@@ -108,7 +109,7 @@ class Song:
 
         try:
             with yt_dlp.YoutubeDL(self.ytdl_options) as ydl:
-                infos = ydl.extract_info(content, download=False)
+                infos: Dict[str, Any] = ydl.extract_info(content, download=False)
             self.valid = True
         except Exception as exc:
             raise Exception(f"Couldn't find {content}") from exc
@@ -156,7 +157,7 @@ class Song:
             return "https://" + probe
         return ""
 
-    def download(self, directory: str = None) -> str:
+    def download(self, directory: Optional[str] = None) -> str:
         """ downloading audio file
 
         When given dir is present, chdir to it and download it there.
@@ -170,7 +171,7 @@ class Song:
         """
 
         if directory:
-            self.download_path = directory
+            self.download_path = pathlib.Path(directory).resolve()
 
         if not os.path.exists(self.download_path):
             try:
@@ -186,7 +187,7 @@ class Song:
             with chdir(self.download_path):
                 try:
                     with yt_dlp.YoutubeDL(self.ytdl_options) as ydl:
-                        result = ydl.extract_info(self.url, download=True)
+                        result: Dict[str, Any] = ydl.extract_info(self.url, download=True)
                     self.filename = self.__prepare_filename(ydl.prepare_filename(result))
                 except Exception as exc:
                     raise Exception(f"failed downloading {self.url}") from exc
@@ -195,11 +196,11 @@ class Song:
 
         return self.filename
 
-    def __prepare_filename(self, file_name) -> str:
-        base_name = re.match(r'(.*)\.[^.]+$', file_name).group(1)
+    def __prepare_filename(self, file_name: str) -> str:
+        base_name: str = re.match(r'(.*)\.[^.]+$', file_name).group(1)
         return f"{base_name}.{self.codec}"
 
-    def progress_hook(self, d) -> None:
+    def progress_hook(self, d: Dict[str, Any]) -> None:
         """ ytdl download progress
 
         provided by yt_dlp. Current status will be stored in self.status.

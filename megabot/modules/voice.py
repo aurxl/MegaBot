@@ -1,6 +1,8 @@
 import logging
 import asyncio
+from typing import Optional, Union
 
+from discord import VoiceChannel, VoiceClient
 from discord.ext import commands
 from megabot.megabot import MegaBot
 
@@ -8,7 +10,7 @@ logger = logging.getLogger(__package__)
 
 class Voice(commands.Cog):
     def __init__(self, bot:MegaBot ) -> None:
-        self.bot = bot
+        self.bot: MegaBot = bot
 
         logger.info("Voice module enabled")
 
@@ -21,7 +23,7 @@ class Voice(commands.Cog):
             return await ctx.send("There is no Channel to join to")
 
         if not channel:
-            channel = ctx.message.author.voice.channel
+            channel: VoiceChannel = ctx.message.author.voice.channel
         else:
             for c in ctx.guild.voice_channels:
                 if channel.lower() == c.name.lower():
@@ -32,7 +34,7 @@ class Voice(commands.Cog):
                 return await ctx.send(f"There is no channel {channel}")
 
         logger.debug(f"{ctx.author.name} requested to join into channel {channel.name}")
-        voice_client = ctx.voice_client
+        voice_client: Optional[VoiceClient] = ctx.voice_client
         if voice_client is not None:
             if voice_client.is_playing():
                 voice_client.pause()

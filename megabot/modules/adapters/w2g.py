@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import json
 import requests
+from typing import Optional, Union
 
 
 class WatchToGether:
@@ -31,13 +32,13 @@ class WatchToGether:
     def __init__(self, api_key: str):
         """initialize object attributes"""
 
-        self.api_key = api_key
-        self.stream_key = ""
-        self.room_link = ""
-        self.bg_color = "#232929"
-        self.bg_opacity = "90"
+        self.api_key: str = api_key
+        self.stream_key: str = ""
+        self.room_link: str = ""
+        self.bg_color: str = "#232929"
+        self.bg_opacity: str = "90"
 
-    def create_room(self, url: str="", bg_color: str = "", bg_opacity: str = "") -> str | str:
+    def create_room(self, url: str="", bg_color: str = "", bg_opacity: str = "") -> str:
         """ creating w2g room
 
         params:
@@ -54,12 +55,12 @@ class WatchToGether:
         if bg_opacity != "":
             self.bg_opacity = bg_opacity
 
-        header = {
+        header: dict[str, str] = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         }
         try:
-            req = requests.post(
+            req: requests.Response = requests.post(
                 "https://api.w2g.tv/rooms/create.json",
                 headers=header,
                 data=json.dumps(
@@ -74,13 +75,13 @@ class WatchToGether:
             )
         except Exception as exc:
             raise Exception('failed post request') from exc
-        response = req.json()
+        response: dict[str, str] = req.json()
 
         self.stream_key = response["streamkey"]
         self.room_link = f'https://w2g.tv/rooms/{response["streamkey"]}'
         return self.room_link
 
-    def update_room(self, url: str) -> bool:
+    def update_room(self, url: str) -> Optional[bool]:
         """ update currently playing video
 
         params:
@@ -90,12 +91,12 @@ class WatchToGether:
         bool -- True if server response is ok
         """
 
-        header = {
+        header: dict[str, str] = {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         }
         try:
-            req = requests.post(
+            req: requests.Response = requests.post(
                 f'https://api.w2g.tv/rooms/{self.stream_key}/sync_update',
                 headers=header,
                 data=json.dumps({

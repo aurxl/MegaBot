@@ -3,33 +3,34 @@ import pathlib
 from dynaconf import Dynaconf, LazySettings
 import argparse
 from importlib.metadata import version, metadata
+from typing import List, Tuple, Dict, Any
 
-VERSION = version(str(__package__))
-SCRIPT_PATH = pathlib.Path(__file__).parent.resolve()
-LOGGING_DEFAULT_PATH = f"{SCRIPT_PATH.parent.resolve()}/log"
-CONFIG_DEFAULT_PATHS = [
+VERSION: str = version(str(__package__))
+SCRIPT_PATH: pathlib.Path = pathlib.Path(__file__).parent.resolve()
+LOGGING_DEFAULT_PATH: str = f"{SCRIPT_PATH.parent.resolve()}/log"
+CONFIG_DEFAULT_PATHS: List[str] = [
     "/etc/megabot",
     f"{os.path.expanduser('~')}/.conf/megabot",
     f"{SCRIPT_PATH.parent.resolve()}/config"
 ]
-VALID_CONFIG_NAMES = ["megabot.yml", "megabot.yaml"]
-REQUIRED_CONF_OPTIONS = [("Discord", "token"), ("w2g", "token")]
+VALID_CONFIG_NAMES: List[str] = ["megabot.yml", "megabot.yaml"]
+REQUIRED_CONF_OPTIONS: List[Tuple[str, str]] = [("Discord", "token"), ("w2g", "token")]
 
-DEFAULT_DISCORD_SETTINGS = {
+DEFAULT_DISCORD_SETTINGS: Dict[str, str] = {
     "token": "",
     "prefix": "!",
 }
-DEFAULT_MEGABOT_SETTINGS = {
+DEFAULT_MEGABOT_SETTINGS: Dict[str, str] = {
     "datapath": "/opt/megabot",
     "default_status": "discord"
 }
-DEFAULT_CORE_SETTINGS = {
+DEFAULT_CORE_SETTINGS: Dict[str, bool] = {
     "enabled": True
 }
-DEFAULT_VOICE_SETTINGS = {
+DEFAULT_VOICE_SETTINGS: Dict[str, bool] = {
     "enabled": False
 }
-DEFAULT_MUSIC_SETTINGS = {
+DEFAULT_MUSIC_SETTINGS: Dict[str, Any] = {
     "enabled": False,
     "mediapath": "",
     "yt_dlp": {
@@ -37,26 +38,26 @@ DEFAULT_MUSIC_SETTINGS = {
         "cookiefile": ""
     }
 }
-DEFAULT_W2G_SETTINGS = {
+DEFAULT_W2G_SETTINGS: Dict[str, Any] = {
     "enabled": False,
     "token": ""
 }
-DEFAULT_LOGGING_SETTINGS = {
+DEFAULT_LOGGING_SETTINGS: Dict[str, Any] = {
     "path": LOGGING_DEFAULT_PATH,
     "debug": False,
     "cli": {
         "level": 0
     }
 }
-DEFAULT_MODULES_SETTINGS = {
+DEFAULT_MODULES_SETTINGS: Dict[str, Dict] = {
     "core": DEFAULT_CORE_SETTINGS,
     "voice": DEFAULT_VOICE_SETTINGS,
     "music": DEFAULT_MUSIC_SETTINGS,
     "w2g": DEFAULT_W2G_SETTINGS
 }
 
-argConsts = {
-    "PROG": __package__,
+argConsts: Dict[str, str] = {
+    "PROG": str(__package__),
     "DESCRIPTION": f"MegaBot v{VERSION} Discord music bot",
     "EPILOG": ""
 }
@@ -65,7 +66,7 @@ class ConfigError(Exception):
     "Configuration not valid"
 
 def __cli_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
+    parser: argparse.ArgumentParser = argparse.ArgumentParser(
         prog=argConsts['PROG'],
         description=argConsts['DESCRIPTION'],
         epilog=argConsts['EPILOG'],
@@ -96,8 +97,8 @@ def __cli_args() -> argparse.Namespace:
     return parser.parse_args()
 
 def __config_settings() -> LazySettings:
-    cli_options = __cli_args()
-    config_paths = CONFIG_DEFAULT_PATHS
+    cli_options: argparse.Namespace = __cli_args()
+    config_paths: List[str] = CONFIG_DEFAULT_PATHS
 
     if cli_options.CONF:
         config_paths = [cli_options.CONF]
@@ -132,13 +133,13 @@ def __evaluate_settings(config:LazySettings) -> None:
         assert config.modules.w2g.token, "W2G token required"
 
 def __settings() -> LazySettings:
-    config = __config_settings()
+    config: LazySettings = __config_settings()
     if not config:
         raise FileNotFoundError("No config file found")
-    cli_args = __cli_args()
+    cli_args: argparse.Namespace = __cli_args()
     __merge_settings(config, cli_args)
     __evaluate_settings(config)
 
     return config
 
-settings = __settings()
+settings: LazySettings = __settings()

@@ -5,6 +5,7 @@ import logging
 import signal
 import os
 import pathlib as p
+from typing import List
 
 from megabot.megabot import MegaBot
 from megabot.settings import settings
@@ -12,7 +13,7 @@ from megabot.settings import settings
 logger = logging.getLogger(__package__)
 
 def create_directories() -> None:
-    directories = [
+    directories: List[p.Path] = [
         p.Path(str(settings.logging.path)),
         p.Path(str(settings.megabot.datapath)),
     ]
@@ -24,7 +25,7 @@ def create_directories() -> None:
     if settings.modules.music.yt_dlp.cookies:
         if not settings.modules.music.yt_dlp.cookiefile:
             settings.modules.music.yt_dlp.cookiefile = str(p.Path(str(settings.megabot.datapath) + "/cookies")) + "/cookies.txt"
-        cookiefile_path = p.Path(str(settings.modules.music.yt_dlp.cookiefile)).parent.resolve()
+        cookiefile_path: p.Path = p.Path(str(settings.modules.music.yt_dlp.cookiefile)).parent.resolve()
         directories.append(cookiefile_path)
 
     for dir in directories:
@@ -39,7 +40,7 @@ def create_directories() -> None:
 
 def main() -> None:
     create_directories()
-    megabot = MegaBot()
+    megabot: MegaBot = MegaBot()
     megabot.activate()
 
 
